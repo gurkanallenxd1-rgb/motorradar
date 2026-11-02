@@ -1,4 +1,4 @@
-# MotorRadar 2.0 — iPhone için motosiklet ilan takip PWA'sı
+# MotorRadar 2.2 — iPhone için motosiklet ilan takip PWA'sı
 
 Bu proje **Sahibinden, Arabam ve diğer ilan sitelerinin resmi API'sine bağlı değildir**. Bu sitelerden otomatik veri çekmez, korumaları aşmaz, fiyatları kendiliğinden güncellemez.
 
@@ -16,7 +16,7 @@ Bu proje **Sahibinden, Arabam ve diğer ilan sitelerinin resmi API'sine bağlı 
 
 1. iPhone'daki **Dosyalar** uygulamasından ZIP dosyasına dokunup çıkar.
 2. [github.com/new](https://github.com/new) adresinden `motorradar` adlı **public** repository oluştur.
-3. Oluşturulan repoda **Add file → Upload files** ile ZIP içindeki `index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg` ve tüm `icon-*.png` dosyalarını yükle. (Dosyaları ZIP olarak değil, içinden çıkarılmış hâliyle yükle.) `README.md` isteğe bağlıdır.
+3. Oluşturulan repoda **Add file → Upload files** ile ZIP içindeki `index.html`, `manifest.webmanifest`, `sw.js`, `listing-url.js`, `ocr-parser.js`, `screenshot-ocr.js`, `vendor/ocr/` dizini, `icon.svg` ve tüm `icon-*.png` dosyalarını yükle. (Dosyaları ZIP olarak değil, içinden çıkarılmış hâliyle yükle.) `README.md` isteğe bağlıdır.
 4. GitHub repo **Settings → Pages → Build and deployment → Deploy from a branch → main / (root) → Save**.
 5. GitHub Pages adresi genellikle `https://KULLANICI_ADI.github.io/motorradar/` şeklindedir; dağıtımın tamamlandığını kontrol et.
 6. Safari'de adresi aç → Paylaş → Ana Ekrana Ekle.
@@ -75,3 +75,19 @@ npm run test:safari
 ```
 
 Safari testleri iPhone 13 ayarlarında Playwright WebKit kullanır; 320/375/390 piksel genişlik, eski kayıtlar, kısa bağlantı, boş bilgiler, tekrar kontrolü, karşılaştırma, manuel fiyat geçmişi ve yedek geri yüklemeyi kapsar. Bunlar gerçek iPhone üzerinde Safari testinin yerine geçmez. CI `.github/workflows/test.yml` içindedir.
+
+## MotorRadar 2.2: Cihazda ekran görüntüsü okuma
+
+**Yeni ilan ekle** ekranında isteğe bağlı olarak 1–6 PNG/JPEG/WebP seç ve **Görselleri oku** düğmesine dokun. Görsel başına üst sınır 12 MB / 24 milyon pikseldir. HEIC desteklenmez; PNG/JPEG olarak dışa aktar. Görseller sırayla, en fazla 2000×3000 boyutlu tuvalde işlenir; iPhone belleğini korumak için her tuval okuma sonrası serbest bırakılır.
+
+Tesseract.js + Türkçe LSTM modeli uygulamayla birlikte gelir. Görseller yalnızca cihaz üzerinde Web Worker / WebAssembly ile okunur; hiçbir sunucuya, OCR servisine veya ilan sitesine gönderilmez. Sahibinden kısa/uzun bağlantı doğrulaması ve URL önerileri 2.1 ile aynıdır; kısa bağlantı çözülmez ve scraping yapılmaz. İlk başarılı uygulama önbelleklemesinden sonra OCR çevrimdışı da çalışır. Tarayıcının önbelleği silmesi veya depolama kısıtları çevrimdışı kullanımı etkileyebilir.
+
+Marka, model, model yılı, fiyat, kilometre, şehir ve başlık **açık alan etiketleriyle** okunmaya çalışılır; tek başına TL/₺ fiyatı ve km değeri de tanınır. Etiketsiz ilan başlığından veya URL'den yıl/fiyat gibi bilgiler tahmin edilmez. Satır güveni %75 altında olan, biçimi/rakamı bozuk, sınır dışındaki veya birden fazla görselde farklı bulunan alanlar boş kalır. `245.000 TL`, `₺ 245.000,50`, `16.000 km` ve boşlukla ayrılmış Türkçe sayılar desteklenir. OCR kesin doğruluk garantisi vermez; özellikle küçük yazı, kesilmiş alan ve karmaşık yerleşimde elle düzeltme gerekebilir.
+
+Okunan değerler düzenlenebilir forma yerleşir; okuma sırasında elle değiştirdiğin alan korunur. Dolu bir form yeniden okutulmadan önce üzerine yazma onayı alınır. İptal, 120 saniyelik zaman aşımı, bozuk/desteklenmeyen dosya veya motor hatasında manuel giriş devam eder. Fotoğraf hiçbir zaman zorunlu değildir. **Kaydet** sonrası kullanıcı onaylamadan kayıt yapılmaz. Görseller ve ham OCR metni saklanmaz.
+
+`motorradar-v1` anahtarı değişmez; eski kayıtlar, ek alanlar, v1/2.x JSON yedekleri, fiyat geçmişi ve karşılaştırmalar korunur. Marka yeni ve isteğe bağlı bir alandır; eski birleşik marka/model metni değiştirilmez. Fiyat geçmişi yalnızca onaylanan kayıtta fiyat değişmişse eklenir; OCR tek başına fiyat geçmişi oluşturmaz.
+
+Tüm kök dosyaları, `listing-url.js`, `ocr-parser.js`, `screenshot-ocr.js` ve **`vendor/ocr/` dizinini** birlikte dağıt. OCR motorunun tekrar üretimi ve lisansları `vendor/ocr/README.md` içindedir.
+
+2.2 testleri gerçek OCR motoruyla üretilmiş Türkçe görselleri, çoklu dosyayı, çevrimdışı okumayı, yükleme/dış istek yapılmamasını, onay reddini, alan düzenlemeyi, çelişkileri, boş/düşük güvenli sonuçları, iptali, bozuk/HEIC/büyük dosyaları ve manuel kaydı kapsar. Eski veri/yedek/geçmiş/karşılaştırma testleri sürer. `npm run test:safari` varsayılan olarak iPhone 13 WebKit profili kullanır; yerel Chromium için `LOCAL_CHROMIUM=1 npm run test:safari` (sistem Chromium'u gerekir). Fiziksel iPhone Safari/PWA'da Fotoğraflar seçimi, klavye ve bellek davranışını ayrıca denemek gerekir.
