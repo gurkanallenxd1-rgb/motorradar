@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 async function image(page,lines){const b64=await page.evaluate(lines=>{const c=document.createElement('canvas');c.width=1000;c.height=lines.length*65+80;const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,c.width,c.height);x.fillStyle='black';x.font='32px Arial';lines.forEach((s,i)=>x.fillText(s,40,60+i*65));return c.toDataURL('image/png').split(',')[1]},lines);return {name:'screenshot.png',mimeType:'image/png',buffer:Buffer.from(b64,'base64')};}
 const records=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')||'[]'));
-test('real on-device OCR: multiple images, Turkish fields, editable form, confirmation, offline and no upload',async({page,context})=>{
+test('real on-device OCR: multiple images, Turkish fields, editable form, confirmation, offline and no upload',async({page,context,browserName})=>{
  test.setTimeout(120000);const outside=[],uploads=[],errors=[];
  page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8000')&&!r.url().startsWith('blob:'))outside.push(r.url());if(r.method()!=='GET')uploads.push(r.url());});page.on('pageerror',e=>errors.push(e.message));
  let approve=false;page.on('dialog',d=>approve?d.accept():d.dismiss());
@@ -16,7 +16,12 @@ test('real on-device OCR: multiple images, Turkish fields, editable form, confir
  approve=true;await page.locator('#listingForm button[type=submit]').click();expect((await records(page))[0]).toMatchObject({brand:'Yamaha',model:'MT-25',price:240000.5,km:16000,year:2023});
  await page.reload();await expect(page.locator('#countStat')).toHaveText('1');
  // Installed shell, engine and Turkish model work with the network disconnected.
- await context.setOffline(true);await page.reload();await page.locator('#addBtn').click();await page.locator('#screenshots').setInputFiles(details);await page.locator('#readScreenshots').click();
+ await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);
+ // Playwright WebKit's context offline switch prevents even SW navigation (internal error).
+ // Abort all network fallbacks instead; cache hits must still reload and run a fresh worker.
+ if(browserName==='webkit')await context.route('**/*',route=>route.abort('internetdisconnected'));
+ else await context.setOffline(true);
+ await page.reload();await page.locator('#addBtn').click();await page.locator('#screenshots').setInputFiles(details);await page.locator('#readScreenshots').click();
  await expect(page.locator('#ocrStatus')).toContainText('Henüz kaydedilmedi',{timeout:90000});await expect(page.locator('#fPrice')).toHaveValue('245000.5');await expect(page.locator('#fTitle')).toHaveValue('');
  expect(outside).toEqual([]);expect(uploads).toEqual([]);expect(errors).toEqual([]);
 });
