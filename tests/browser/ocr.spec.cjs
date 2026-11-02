@@ -7,17 +7,17 @@ test('real on-device OCR: multiple images, Turkish fields, editable form, confir
  let approve=false;page.on('dialog',d=>approve?d.accept():d.dismiss());
  await page.goto('/');await page.evaluate(async()=>{await navigator.serviceWorker.ready});
  const top=await image(page,['İlan başlığı: Temiz Yamaha','Marka: Yamaha','Model: MT-25']);
- const details=await image(page,['Model Yılı: 2023','Fiyat: 245.000 TL','Kilometre: 16.000 km','Şehir: İstanbul']);
+ const details=await image(page,['Model Yılı: 2023','Fiyat: 245.000,50 TL','Kilometre: 16.000 km','Şehir: İstanbul']);
  await page.locator('#addBtn').click();await page.locator('#screenshots').setInputFiles([top,details]);await page.locator('#readScreenshots').click();
  await expect(page.locator('#ocrStatus')).toContainText('Henüz kaydedilmedi',{timeout:90000});
- for(const [id,value] of Object.entries({fBrand:'Yamaha',fModel:'MT-25',fYear:'2023',fPrice:'245000',fKm:'16000',fCity:'İstanbul',fTitle:'Temiz Yamaha'}))await expect(page.locator('#'+id)).toHaveValue(value);
- expect(await records(page)).toEqual([]);await page.locator('#fPrice').fill('240000');
+ for(const [id,value] of Object.entries({fBrand:'Yamaha',fModel:'MT-25',fYear:'2023',fPrice:'245000.5',fKm:'16000',fCity:'İstanbul',fTitle:'Temiz Yamaha'}))await expect(page.locator('#'+id)).toHaveValue(value);
+ expect(await records(page)).toEqual([]);await page.locator('#fPrice').fill('240000.50');
  await page.locator('#listingForm button[type=submit]').click();expect(await records(page)).toEqual([]);await expect(page.locator('#editDialog')).toBeVisible();
- approve=true;await page.locator('#listingForm button[type=submit]').click();expect((await records(page))[0]).toMatchObject({brand:'Yamaha',model:'MT-25',price:240000,km:16000,year:2023});
+ approve=true;await page.locator('#listingForm button[type=submit]').click();expect((await records(page))[0]).toMatchObject({brand:'Yamaha',model:'MT-25',price:240000.5,km:16000,year:2023});
  await page.reload();await expect(page.locator('#countStat')).toHaveText('1');
  // Installed shell, engine and Turkish model work with the network disconnected.
  await context.setOffline(true);await page.reload();await page.locator('#addBtn').click();await page.locator('#screenshots').setInputFiles(details);await page.locator('#readScreenshots').click();
- await expect(page.locator('#ocrStatus')).toContainText('Henüz kaydedilmedi',{timeout:90000});await expect(page.locator('#fPrice')).toHaveValue('245000');await expect(page.locator('#fTitle')).toHaveValue('');
+ await expect(page.locator('#ocrStatus')).toContainText('Henüz kaydedilmedi',{timeout:90000});await expect(page.locator('#fPrice')).toHaveValue('245000.5');await expect(page.locator('#fTitle')).toHaveValue('');
  expect(outside).toEqual([]);expect(uploads).toEqual([]);expect(errors).toEqual([]);
 });
 test('bad files, unsupported formats, limits, blank OCR, cancellation and manual fallback',async({page})=>{

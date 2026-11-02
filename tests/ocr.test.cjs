@@ -3,7 +3,7 @@ const {number,extract}=require('../ocr-parser.js');
 const page=(...texts)=>({lines:texts.map(text=>({text,confidence:95}))});
 test('Turkish thousands, decimals, spaces and currency; reject damaged numbers',()=>{
  for(const [s,n] of [['245.000 TL',245000],['₺ 245.000,50',245000.5],['1.250.000,00 ₺',1250000],['24\u00a0500 km',24500],['0 km',0],['245000',245000]])assert.equal(number(s),n,s);
- for(const s of ['24.50','24,500','1.23.000','245O00','1e5','-20','24,5,0',''])assert.equal(number(s),null,s);
+ for(const s of ['24.50','24,500','1.23.000','245O00','1e5','-20','24,5,0','24 50','2 45.000','245TL000',''])assert.equal(number(s),null,s);
 });
 test('extract explicit Turkish labels and preserve model year distinction',()=>{
  assert.deepEqual(extract([page('İlan başlığı: Temiz Yamaha','Marka Yamaha','Model MT-25','Model Yılı 2023','Fiyat 245.000,50 TL','Kilometre 16.000 km','Şehir İstanbul')]).values,{brand:'Yamaha',model:'MT-25',year:2023,price:245000.5,km:16000,city:'İstanbul',title:'Temiz Yamaha'});

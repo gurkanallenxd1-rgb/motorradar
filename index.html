@@ -79,7 +79,7 @@
       <label><span>Şehir</span><input class="input" id="fCity" maxlength="50" placeholder="İstanbul"></label>
       <label><span>Model yılı</span><input class="input" type="number" id="fYear" min="1950" max="2035" placeholder="2023"></label>
       <label><span>Kilometre</span><input class="input" type="number" id="fKm" min="0" max="2000000" step="1" placeholder="16000"></label>
-      <label class="full"><span>İlan fiyatı (TL)</span><input class="input" type="number" id="fPrice" min="1" max="1000000000" step="1" placeholder="245000"></label>
+      <label class="full"><span>İlan fiyatı (TL)</span><input class="input" type="number" id="fPrice" min="0.01" max="1000000000" step="0.01" placeholder="245000"></label>
       <label class="full"><span>İlan bağlantısı (Sahibinden, Arabam vb.)</span><input class="input" type="url" id="fUrl" maxlength="1000" placeholder="https://www.sahibinden.com/ilan/..."></label>
       <label class="full"><span>Doğruladığın Sahibinden ilan numarası (isteğe bağlı)</span><input class="input" id="fListingId" inputmode="numeric" pattern="[0-9]{6,15}" placeholder="Yalnızca ilanda gördüğün numara"><small>Kısa bağlantı kodu ilan numarası değildir. Uzun bağlantıdaki numara otomatik kullanılır.</small></label><label class="full"><span>Notların</span><textarea id="fNotes" rows="3" maxlength="1500" placeholder="Ekspertiz, tramer, değişen parça, satıcıyla konuşulanlar…"></textarea></label>
     </div><div class="form-actions"><button type="button" class="btn" data-close="editDialog">Vazgeç</button><button type="submit" class="btn primary">Kaydet</button></div></form>

@@ -3,7 +3,11 @@
   'use strict';
   function number(value){
     if(typeof value!=='string')return null;
-    const s=value.trim().replace(/(?:TL|TRY|₺|km)/gi,'').trim().replace(/[\s\u00a0\u202f]/g,'');
+    let s=value.trim().replace(/^₺\s*/, '').replace(/\s*(?:TL|TRY|₺|km)$/i,'').trim().replace(/[\u00a0\u202f]/g,' ');
+    if(/\s/.test(s)){
+      if(!/^\d{1,3}(?: \d{3})+(?:,\d{1,2})?$/.test(s))return null;
+      s=s.replace(/ /g,'');
+    }
     if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(s))return null;
     const n=Number(s.replace(/\./g,'').replace(',','.'));
     return Number.isFinite(n)?n:null;
@@ -14,6 +18,7 @@
   function convert(key,value){
     if(!value)return null;
     if(['year','price','km'].includes(key)){
+      if(key==='price'&&/km/i.test(value)||key==='km'&&/TL|TRY|₺/i.test(value))return null;
       const n=number(value);if(n===null)return null;
       if(key==='year')return /^\d{4}$/.test(value.trim())&&n>=1950&&n<=2035?n:null;
       if(key==='km')return Number.isInteger(n)&&n>=0&&n<=2000000?n:null;
