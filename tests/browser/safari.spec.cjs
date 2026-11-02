@@ -19,3 +19,68 @@ test('iPhone WebKit: paste, suggest, save, reload, duplicates, history, backup a
  for(const width of [320,375,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
  expect(outside).toEqual([]);expect(errors).toEqual([]);
 });
+test('iPhone WebKit: short links, unknown details, verified IDs and backup restore',async({page})=>{
+ const outside=[],errors=[];
+ page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8000'))outside.push(r.url())});
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('dialog',d=>d.accept());
+ await page.goto('/');
+ const short='https://shbd.io/s/S7csE12b';
+ const data=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));
+ await page.locator('#quickUrl').fill(short);
+ await page.locator('#quickForm button').click();
+ await expect(page.locator('#editDialog')).toBeVisible();
+ await expect(page.locator('#fUrl')).toHaveValue(short);
+ for(const id of ['fModel','fPrice','fKm','fYear'])await expect(page.locator('#'+id)).toHaveValue('');
+ await expect(page.locator('#modelSuggestion')).toBeHidden();
+ await page.locator('#fTitle').fill('Kısa ilan');
+ await page.locator('#listingForm button[type=submit]').click();
+ expect((await data())[0]).toMatchObject({model:'',price:null,km:null,year:null,history:[],url:short});
+ await expect(page.locator('#lowStat')).toHaveText('—');
+ await expect(page.locator('#cards .link')).toHaveAttribute('href',short);
+ await expect(page.locator('#cards .link')).toHaveAttribute('rel','noopener noreferrer');
+ await page.reload();
+ await page.locator('#quickUrl').fill(short+'/?tracking=1#share');
+ await page.locator('#quickForm button').click();
+ await expect(page.locator('#quickError')).toContainText('zaten');
+ await expect(page.locator('#editDialog')).toBeHidden();
+ await page.locator('#budgetOnly').check();
+ await expect(page.locator('.listing')).toHaveCount(0);
+ await page.locator('#budgetOnly').uncheck();
+ await page.locator('[data-detail]').click();
+ await expect(page.locator('#detailContent')).toContainText('Henüz fiyat kaydedilmedi');
+ await page.locator('#detailEdit').click();
+ await page.locator('#fPrice').fill('230000');
+ await page.locator('#fKm').fill('0');
+ await page.locator('#listingForm button[type=submit]').click();
+ expect((await data())[0].history).toHaveLength(1);
+ await page.locator('[data-detail]').click();await page.locator('#detailEdit').click();
+ await page.locator('#fNotes').fill('Sadece not');
+ await page.locator('#listingForm button[type=submit]').click();
+ expect((await data())[0].history).toHaveLength(1);
+ // An unrelated short alias is not guessed to be the same listing.
+ await page.locator('#quickUrl').fill('https://shbd.io/s/Other');await page.locator('#quickForm button').click();
+ await page.locator('#fTitle').fill('Diğer kısa ilan');
+ await page.locator('#fListingId').fill('1234567890');
+ await page.locator('#listingForm button[type=submit]').click();
+ expect(await data()).toHaveLength(2);
+ // Long URL supplies its own trusted listing number, matching the verified short record.
+ await page.locator('#quickUrl').fill('https://www.sahibinden.com/ilan/yamaha-mt-25-1234567890/detay');
+ await page.locator('#quickForm button').click();
+ await expect(page.locator('#quickError')).toContainText('zaten');
+ await page.locator('[data-choose]').nth(0).check();await page.locator('[data-choose]').nth(1).check();
+ await page.locator('#compareBtn').click();await expect(page.locator('#compareContent')).toContainText('Bilinmiyor');
+ await page.locator('[data-close=compareDialog]').click();
+ const before=await data();
+ const download=page.waitForEvent('download');await page.locator('#backupBtn').click();
+ const backupPath=await (await download).path();
+ await page.locator('#importFile').setInputFiles(backupPath);
+ await expect.poll(data).toEqual(before);
+ await expect(page.locator('#importFile')).toHaveValue('');
+ // The v1 format remains valid and retains extra fields and history.
+ const old={id:'legacy',title:'Eski',model:'Yamaha',price:240000,km:1000,year:2023,url:'',notes:'Eski not',createdAt:'2026-01-01',history:[{price:250000,at:'2026-01-01'},{price:240000,at:'2026-01-02'}],extra:'preserved'};
+ await page.locator('#importFile').setInputFiles({name:'v1.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({app:'MotorRadar',version:1,listings:[old]}))});
+ await expect.poll(data).toEqual([old]);
+ for(const width of [320,375,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+ expect(outside).toEqual([]);expect(errors).toEqual([]);
+});
