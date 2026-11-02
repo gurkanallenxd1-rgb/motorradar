@@ -91,3 +91,19 @@ Okunan değerler düzenlenebilir forma yerleşir; okuma sırasında elle değiş
 Tüm kök dosyaları, `listing-url.js`, `ocr-parser.js`, `screenshot-ocr.js` ve **`vendor/ocr/` dizinini** birlikte dağıt. OCR motorunun tekrar üretimi ve lisansları `vendor/ocr/README.md` içindedir.
 
 2.2 testleri gerçek OCR motoruyla üretilmiş Türkçe görselleri, çoklu dosyayı, çevrimdışı okumayı, yükleme/dış istek yapılmamasını, onay reddini, alan düzenlemeyi, çelişkileri, boş/düşük güvenli sonuçları, iptali, bozuk/HEIC/büyük dosyaları ve manuel kaydı kapsar. Eski veri/yedek/geçmiş/karşılaştırma testleri sürer. `npm run test:safari` varsayılan olarak iPhone 13 WebKit profili kullanır; yerel Chromium için `LOCAL_CHROMIUM=1 npm run test:safari` (sistem Chromium'u gerekir). Fiziksel iPhone Safari/PWA'da Fotoğraflar seçimi, klavye ve bellek davranışını ayrıca denemek gerekir.
+
+## MotorRadar 2.3 — cihazda ilan analizi
+
+Her karttaki **İlanı analiz et** düğmesi yalnızca kayıtlı ilanları kullanır. Harici AI, anahtar, scraping veya veri gönderimi yoktur. Filtrelenmiş görünüm örnek havuzunu etkilemez. `motorradar-v1`, eski JSON yedekleri, ek alanlar, fiyat geçmişi, OCR ve bağlantı kuralları korunur. İsteğe bağlı `description` alanı eklenmiştir; eski kayıtlarda gerekli değildir.
+
+- Model adı boşluk / noktalama / büyük-küçük harf farklarından arındırılır. MT-25, R25 ve Duke 250 marka eşlemeleri vardır; diğer modellerde marka (model metninde veya marka alanında) gerekir. Farklı modeller birleştirilmez.
+- Aynı model / marka ve ±1 model yılı, geçerli pozitif fiyat. İncelenen ilan ve bilinen aynı kimlik / URL / doğrulanmış ilan numaraları hariç. Çözümlenmemiş kısa bağlantıların uzun URL ile aynı olduğu tahmin edilmez.
+- En az üç örnek gerekir. Medyan, TL farkı (`ilan − medyan`), yüzde (`fark / medyan × 100`) ve örnek sayısı gösterilir. Kayıtlı fiyatlar tüm piyasayı veya gerçekleşen satış fiyatını temsil etmez.
+- Yıllık km = `km / max(1, güncel yıl − model yılı)`. Gelecek / eksik yıl geçersizdir. Bu yaklaşık kullanım miktarıdır, mekanik durum tespiti değildir.
+- Puan: `%60 fiyat + %25 yıllık km + %15 model yılı`. Bileşenler sırasıyla `50 − 100 × fiyat farkı / medyan fiyat`, `50 − 50 × (yıllık km − medyan yıllık km) / medyan yıllık km`, `50 + 25 × (yıl − medyan yıl)`; her biri 0–100'e sınırlanır, toplam yuvarlanır. Medyan yıllık km sıfırsa ilan da sıfır olduğunda km bileşeni 50, aksi halde 0. İlanın veya örneklerin gerekli alanları eksikse puan üretilmez. Puan teknik kalite veya satın alma garantisi değildir.
+- Açıklama / notlardaki hasar, kaza, boya, değişen, tramer, bakım ve servis ifadeleri bağlamıyla gösterilir; “hasar yok” gibi olumsuzlamalar korunur. Bu ifadeler puanı değiştirmez, hasar / dolandırıcılık çıkarımı yapılmaz.
+- Panelde kullanılan / dışlanan kayıtlar, gerekçeler ve tüm formüller açılabilir. Analiz kayıtları değiştirmez; açıldığında yeniden hesaplanır.
+
+### Doğrulama
+
+`npm ci && npm test` hesaplama, bağlantı, OCR ve kayıt regresyonlarını çalıştırır. `npx playwright install --with-deps webkit && npm run test:safari` iPhone 13 WebKit emülasyonunda OCR, eski kayıt, fiyat geçmişi, JSON yedekleme, karşılaştırma, analiz, XSS metni, 320/375/390px taşma ve çevrimdışı analizi doğrular. Fiziksel iPhone testi değildir. GitHub Actions aynı kontrolleri çalıştırır.
