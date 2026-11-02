@@ -7,7 +7,7 @@ test('strict host, protocol, credentials and listing path validation',()=>{
  assert.equal(sahibinden(url).id,'1234567890');
 });
 test('same listing despite mobile host, slug, tracking and hash',()=>{
- assert.equal(key(url),key('http://m.sahibinden.com/ilan/new-title-1234567890/detay/?tracking=1#x'));
+ assert.equal(key(url),key('https://m.sahibinden.com/ilan/new-title-1234567890/detay/?tracking=1#x'));
  assert.notEqual(key(url),key(url.replace('1234567890','1234567891')));
 });
 test('model only from explicit, unambiguous supported name in slug',()=>{

@@ -54,3 +54,24 @@ Aynı Sahibinden ilan numarası; mobil adres, değişmiş başlık, takip parame
 - GitHub Actions aynı kontrolleri çalıştırır. WebKit emülasyonu fiziksel iPhone testi değildir. Gerçek Safari’de ana ekrana ekleme, sanal klavye, güvenli ekran boşlukları ve Dosyalar üzerinden yedek geri yükleme ayrıca denenmelidir.
 
 Bu geliştirme ortamında Node testleri geçti. WebKit indirme sunucuları ortam ağ politikasında `403 Domain forbidden` döndürdüğünden yerel Safari/WebKit çalıştırması tamamlanamadı; CI sonucu ayrıca değerlendirilmelidir.
+
+## MotorRadar 2.1
+
+- Ana ekrandaki bağlantı alanı `https://shbd.io/s/S7csE12b` gibi kısa bağlantıları doğrudan ilan formuna taşır; kaydedilen bağlantı **İlanı aç** ile kullanıcı tarafından açılır.
+- HTTPS ve tam alan adı doğrulanır. Kısa bağlantıda yalnızca `shbd.io` ve `/s/harfVeyaRakam` yolu kabul edilir; sahte alt alan adları, kullanıcı bilgileri, özel portlar, kodlanmış veya nokta segmentli yollar reddedilir. İzleme sorguları ve fragment tekrar kontrolü için kaldırılır; kısa kodun büyük/küçük harfi korunur.
+- Sahibinden'in `sahibinden.com`, `www.sahibinden.com`, `m.sahibinden.com` uzun ilan bağlantıları ve Arabam'ın `arabam.com`, `www.arabam.com` ilan bağlantıları desteklenir. Yeni bağlantılar HTTPS olmalıdır.
+- Aynı kısa bağlantı yeniden kaydedilemez. Kısa koddan ilan numarası çıkarılmaz. Kısa/uzun eşleştirme yalnızca uzun bağlantıdaki ilan numarası veya kısa bağlantı için kullanıcının ilanda görüp doğrulayarak girdiği numara ile yapılır. Numara bilinmiyorsa farklı bağlantıların aynı ilan olduğu varsayılmaz.
+- Bilinmeyen model boş metin; fiyat, kilometre ve yıl `null` olarak saklanır. Boş fiyat için fiyat geçmişi üretilmez; fiyat istatistiği ve bütçe filtresi yalnızca bilinen fiyatları kullanır. Model önerisi yalnızca uzun URL'de açıkça varsa ve kullanıcı **Öneriyi kullan** düğmesine basarsa uygulanır.
+- `motorradar-v1` localStorage anahtarı korunur. Mevcut kayıtlar ve ek alanlar, fiyat geçmişleri, karşılaştırmalar ve eski JSON yedekleri desteklenir. Depolama başarısız olursa bellekteki değişiklik geri alınır.
+- Kısa bağlantı çözümleme, scraping, arka plan taraması veya koruma aşma yapılmaz.
+
+### Kontroller
+
+```sh
+npm ci
+npm test
+npx playwright install --with-deps webkit
+npm run test:safari
+```
+
+Safari testleri iPhone 13 ayarlarında Playwright WebKit kullanır; 320/375/390 piksel genişlik, eski kayıtlar, kısa bağlantı, boş bilgiler, tekrar kontrolü, karşılaştırma, manuel fiyat geçmişi ve yedek geri yüklemeyi kapsar. Bunlar gerçek iPhone üzerinde Safari testinin yerine geçmez. CI `.github/workflows/test.yml` içindedir.
