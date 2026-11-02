@@ -1,4 +1,4 @@
-# MotorRadar — iPhone için motosiklet ilan takip PWA'sı
+# MotorRadar 2.0 — iPhone için motosiklet ilan takip PWA'sı
 
 Bu proje **Sahibinden, Arabam ve diğer ilan sitelerinin resmi API'sine bağlı değildir**. Bu sitelerden otomatik veri çekmez, korumaları aşmaz, fiyatları kendiliğinden güncellemez.
 
@@ -36,3 +36,21 @@ Codex Cloud ortamını ChatGPT'nin web arayüzünden oluştur ve repo ile bağla
 - Arka planda otomatik site tarama veya bildirim YOK.
 - Uygulamayı iPhone'da kullanmak için bir Mac'e ihtiyacın yok; Codex'in yeni bir Cloud ortamını başlatması için web arayüzü gerekir.
 - İlan bilgileri kullanıcı tarafından girilir; uygulama fiyatı doğrulamaz.
+
+## 2.0: Bağlantıyla kolay ekleme
+
+Ana sayfada Sahibinden ilan URL’sini yapıştır ve **Bilgileri tamamla** düğmesine dokun. Uygulama yalnızca `sahibinden.com`, `www.sahibinden.com` ve `m.sahibinden.com` üzerindeki `/ilan/...-ilanNo/detay` bağlantılarını kabul eder. Kısaltılmış bağlantıları açmaz; tam ilan bağlantısını kullan.
+
+URL başlığında desteklenen marka/model açıkça varsa **Öneriyi kullan** düğmesi gösterilir. Öneri fiyat, kilometre veya yıl doldurmaz; tüm bilgiler elle düzenlenebilir. Belirsiz veya tanınmayan modellerde öneri gösterilmez. İlan sayfasına hiçbir otomatik istek yapılmaz.
+
+Aynı Sahibinden ilan numarası; mobil adres, değişmiş başlık, takip parametresi veya fragment ile tekrar kaydedilemez. Kontrol hem kolay eklemede hem standart formda çalışır; mevcut ilan kendisiyle çakışmadan düzenlenebilir. Yedek içindeki tekrarlı ilanlar dosya değiştirilmeden reddedilir. Eski kayıtlar otomatik silinmez veya birleştirilmez.
+
+`motorradar-v1` localStorage anahtarı ve sürüm 1 JSON yedekleri korunur. Güncelleme aynı site adresinde kullanıldığında mevcut verilerle devam eder. Başka bir alan adı/origin için JSON yedeğini kullan. Mevcut arama, bütçe/model filtresi, sıralama, karşılaştırma ve manuel fiyat geçmişi devam eder.
+
+## Geliştirme ve test
+
+- `npm ci && npm test`: URL doğrulama, model önerisi, eski kayıt yükleme, tekrar engelleme ve depolama hatası testleri.
+- `npx playwright install --with-deps webkit && npm run test:safari`: iPhone 13 profiliyle WebKit uçtan uca testi (320/375/390 px taşma, eski kayıtlar, öneri, kayıt, yeniden yükleme, tekrar kontrolü, fiyat geçmişi, arama, karşılaştırma, JSON indirme ve dış ağa istek yapılmaması).
+- GitHub Actions aynı kontrolleri çalıştırır. WebKit emülasyonu fiziksel iPhone testi değildir. Gerçek Safari’de ana ekrana ekleme, sanal klavye, güvenli ekran boşlukları ve Dosyalar üzerinden yedek geri yükleme ayrıca denenmelidir.
+
+Bu geliştirme ortamında Node testleri geçti. WebKit indirme sunucuları ortam ağ politikasında `403 Domain forbidden` döndürdüğünden yerel Safari/WebKit çalıştırması tamamlanamadı; CI sonucu ayrıca değerlendirilmelidir.
