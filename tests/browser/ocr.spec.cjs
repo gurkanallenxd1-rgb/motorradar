@@ -17,10 +17,11 @@ test('real on-device OCR: multiple images, Turkish fields, editable form, confir
  await page.reload();await expect(page.locator('#countStat')).toHaveText('1');
  // Installed shell, engine and Turkish model work with the network disconnected.
  await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller)).toBe(true);
- // Playwright WebKit's context offline switch prevents even SW navigation (internal error).
- // Abort all network fallbacks instead; cache hits must still reload and run a fresh worker.
- if(browserName==='webkit')await context.route('**/*',route=>route.abort('internetdisconnected'));
- else await context.setOffline(true);
+ // WebKit Inspector offline/routing intercepts navigation before its SW.
+ // Instead make the origin return 503 for this context, including worker requests.
+ await context.addCookies([{name:'motorradar-test-outage',value:'1',url:'http://127.0.0.1:8000'}]);
+ expect(await page.evaluate(async()=>(await fetch('/network-probe')).status)).toBe(503);
+ if(browserName!=='webkit')await context.setOffline(true);
  await page.reload();await page.locator('#addBtn').click();await page.locator('#screenshots').setInputFiles(details);await page.locator('#readScreenshots').click();
  await expect(page.locator('#ocrStatus')).toContainText('Henüz kaydedilmedi',{timeout:90000});await expect(page.locator('#fPrice')).toHaveValue('245000.5');await expect(page.locator('#fTitle')).toHaveValue('');
  expect(outside).toEqual([]);expect(uploads).toEqual([]);expect(errors).toEqual([]);
