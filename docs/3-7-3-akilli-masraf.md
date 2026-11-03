@@ -13,3 +13,5 @@ Doğrulanmış motor fiyatı eksikse “Motor fiyatı eksik, tam bütçe hesapla
 `motorradar-v1`, `motorradar-costs-v37`, fotoğraf IndexedDB ve kurtarma anahtarları korunur. Migration, otomatik silme yoktur. Yeni onay/tarih/tutar/firma alanları güvenli JSON doğrulamasına eklendi. Eski senaryolar geçerlidir. 81 ilan testi sentetik kayıtlarla yapılır; gerçek cihazdaki ilanlara erişilmedi. Fotoğraf byte kontrolü, JSON/Drive/Gmail/OCR/favori/geçmiş regresyonları mevcut testlerde korunur. PWA statik cache anahtarı 3.7.3 Beta olarak yenilendi.
 
 Gerçek iPhone üzerinde henüz test edilmedi. Yerel WebKit kurulumu indirme alan adlarının ağ politikasınca 403 ile engellenmesi nedeniyle başarısız; iPhone WebKit testi motor bulunamadığından başlatılamadı. GitHub Actions Node, Chromium ve iPhone WebKit çalıştırır; güncel sonuç PR üzerinde izlenir.
+
+Yerel doğrulama: Node 102/102; Chromium tüm regresyon paketi 54/54 geçti. 320, 375 ve 390 piksel testlerinde masraf kartları, açık karşılaştırma ve düzenleme alanlarında yatay taşma görülmedi. WebKit CI sonucu PR açıklamasında ayrıca bildirilir.
