@@ -5,7 +5,7 @@ test('iPhone: manual lifecycle, quick history, backup and narrow layouts',async(
  const old={id:'legacy',title:'Eski ilan',model:'Honda',year:2023,price:240000,km:10000,url:'',history:[{price:240000,at:'2026-01-01'}],createdAt:'2026-01-01',custom:'preserve'};
  await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),old);await page.reload();
  const card=page.locator('.listing');await expect(card).toContainText('Kontrol zamanı:');await expect(card).toContainText('Henüz kontrol edilmedi');
- const status=page.locator('[data-status]');for(const value of ['sold','removed','gave_up']){await status.selectOption(value);await expect(card).not.toContainText('Kontrol zamanı:')}
+ await page.locator('#showArchive').check();const status=page.locator('[data-status]');for(const value of ['sold','removed','gave_up']){await status.selectOption(value);await expect(card).not.toContainText('Kontrol zamanı:')}
  await status.selectOption('following');await expect(card).toContainText('Kontrol zamanı:');await page.locator('[data-checked]').click();await expect(card).not.toContainText('Kontrol zamanı:');
  const data=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));
  const checked=(await data())[0].lastCheckedAt;expect(Date.parse(checked)).toBeGreaterThan(Date.now()-60000);
