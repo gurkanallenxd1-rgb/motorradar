@@ -9,7 +9,7 @@ test('compact cards preserve true ties, distinguish total overrun and disclose u
  await expect(page.locator('.decision-score strong')).toHaveText(['50.0','50.0']);
  const a=page.locator('.decision-card').first();
  await expect(a.locator('.decision-budget')).toContainText('Eksik kalemli ara toplam');
- await expect(a.locator('.decision-budget')).toContainText('241.000');
+ await expect(a.locator('.decision-budget')).toContainText('242.511');
  await expect(a.locator('.decision-budget')).toContainText('Tam bütçe hesaplanamadı');
  await expect(a.locator('.decision-budget')).not.toContainText('bütçeye uygun');
  await expect(a.locator('.decision-detail-body')).toBeHidden();await a.locator('summary').click();

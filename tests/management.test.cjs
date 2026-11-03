@@ -2,7 +2,8 @@ const {test}=require('node:test');const assert=require('node:assert/strict');con
 const html=fs.readFileSync('index.html','utf8');
 const original={id:'legacy',title:'Eski',model:'Yamaha R25',year:2023,km:10000,price:240000,url:'https://m.sahibinden.com/ilan/eski-1234567890/detay',notes:'Not',createdAt:'2026-01-01',history:[{price:240000,at:'2026-01-01'}],custom:'preserve'};
 function app(records=[original]){const els={};const events={};let stored=JSON.stringify(records),fail=false;const alerts=[];const confirmations=[];let accepted=true;const element=id=>els[id]??=( {value:['modelFilter','sourceFilter','statusFilter'].includes(id)?'all':'',checked:false,files:[],addEventListener(t,f){events[id+':'+t]=f},showModal(){this.open=true},close(){this.open=false},reset(){for(const k in els)if(k.startsWith('f'))els[k].value=''},querySelector(){return element("saveButton")},append(){}} );
- const context={ListingURL:require('../listing-url.js'),MotorSelector:require('../selector.js'),MotorListingQuality:require('../listing-quality.js'),document:{getElementById:element,querySelectorAll:()=>[]},localStorage:{getItem:()=>stored,setItem:(k,v)=>{if(fail)throw Error();assert.equal(k,'motorradar-v1');stored=v}},navigator:{},crypto:{randomUUID:()=> 'new'},alert:x=>alerts.push(x),confirm:message=>{confirmations.push(message);return accepted},console,Intl,URL,Blob,Date:class extends Date{constructor(...args){super(...(args.length?args:['2026-11-03T12:00:00Z']))}static now(){return Date.parse('2026-11-03T12:00:00Z')}},window:{},setTimeout};
+ const extraStorage=new Map();
+ const context={MotorBackup:require('../backup.js'),MotorPurchaseCosts:require('../purchase-costs.js'),MotorCostResearch:{reloadPreferences(){}},ListingURL:require('../listing-url.js'),MotorSelector:require('../selector.js'),MotorListingQuality:require('../listing-quality.js'),document:{getElementById:element,querySelectorAll:()=>[],createElement:()=>({click(){},remove(){}}),body:{append(){}}},localStorage:{getItem:k=>k==='motorradar-v1'?stored:extraStorage.get(k)??null,setItem:(k,v)=>{if(fail)throw Error();if(k==='motorradar-v1')stored=v;else extraStorage.set(k,v)},removeItem:k=>extraStorage.delete(k)},navigator:{},crypto:{randomUUID:()=> 'new'},alert:x=>alerts.push(x),confirm:message=>{confirmations.push(message);return accepted},console,Intl,URL,Blob,Date:class extends Date{constructor(...args){super(...(args.length?args:['2026-11-03T12:00:00Z']))}static now(){return Date.parse('2026-11-03T12:00:00Z')}},window:{},setTimeout};
  vm.runInNewContext(html.match(/<script>\s*([\s\S]*?)<\/script>/)[1],context);
  element('bulkStatus');return {els,events,alerts,confirmations,accept:value=>accepted=value,data:()=>JSON.parse(stored),fail:()=>fail=true,submit:()=>events['listingForm:submit']({preventDefault(){}})};
 }
@@ -48,8 +49,8 @@ test('dashboard counts whole collection and keeps historical Gmail prices separa
 });
 test('2.5, 3.0, 3.1 and 3.2 backups preserve metadata through restore and bulk edits',async()=>{
  for(const version of ['2.5','3.0','3.1','3.2']){
-  const a=app(),xs=[{...records()[0],url:''}];await a.els.importFile.onchange({target:{files:[{size:100,text:async()=>JSON.stringify({app:'MotorRadar',version,listings:xs})}],value:'backup'}});
-  a.els.selectVisible.onclick();apply(a,'removed');assert.deepEqual(a.data(),xs.map(x=>({...x,status:'removed'})));
+  const a=app(),xs=[{...records()[0],url:''}];await a.els.importFile.onchange({target:{files:[{size:100,text:async()=>JSON.stringify({app:'MotorRadar',version,listings:xs})}],value:'backup'}});a.els.beforeImportBackup.onclick();a.els.backupConsent.checked=true;a.els.backupConsent.onchange();a.els.applyBackup.onclick();
+  a.els.selectVisible.onclick();apply(a,'removed');assert.deepEqual(a.data(),[{...original,favorite:false,status:'removed',lastCheckedAt:null},...xs.map(x=>({...x,status:'removed'}))]);
  }
 });
 test('checking a listing records date without changing status, price or Gmail history',()=>{
