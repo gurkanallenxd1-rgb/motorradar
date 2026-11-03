@@ -32,7 +32,7 @@
 <body>
   <main class="wrap">
     <header class="top">
-      <div class="brand"><div class="logo" aria-hidden="true">⌁</div><div><small>MotorRadar 2.5</small><h1>MotorRadar<span style="color:var(--accent)">.</span></h1></div></div>
+      <div class="brand"><div class="logo" aria-hidden="true">⌁</div><div><small>MotorRadar 3.0 beta</small><h1>MotorRadar<span style="color:var(--accent)">.</span></h1></div></div>
       <span class="pill">2.5 · iPhone uyumlu</span>
     </header>
     <section class="hero">
@@ -53,7 +53,7 @@
       <div class="stat"><label>En düşük</label><strong id="lowStat">—</strong><small>fiyat</small></div>
       <div class="stat"><label>Ort. fiyat</label><strong id="avgStat">—</strong><small>ilanlara göre</small></div>
     </section>
-    <div class="section-head"><div><h2>İlan listem</h2><p>Filtrele, karşılaştır, takip et</p></div><button id="importBtn" class="btn small">Yedek yükle</button></div>
+    <div class="section-head"><div><h2>İlan listem</h2><p>Filtrele, karşılaştır, takip et</p></div><div class="controls"><button id="gmailImportBtn" class="btn small" type="button">Gmail ilanlarını aktar</button><button id="importBtn" class="btn small">Yedek yükle</button></div></div>
     <div class="toolbar">
       <input class="input search" id="search" type="search" placeholder="Model, şehir veya ilan adı ara…" aria-label="İlan ara">
       <select id="modelFilter" aria-label="Model filtresi"><option value="all">Tüm modeller</option></select>
@@ -101,8 +101,11 @@
   <dialog id="detailDialog"><div class="dialog-head"><h2>Fiyat geçmişi</h2><button class="close" data-close="detailDialog" aria-label="Kapat">×</button></div><div class="dialog-content" id="detailContent"></div></dialog>
   <dialog id="compareDialog"><div class="dialog-head"><h2>Motor karşılaştırması</h2><button class="close" data-close="compareDialog" aria-label="Kapat">×</button></div><div class="dialog-content"><div class="overflow" id="compareContent"></div></div></dialog>
   <dialog id="analysisDialog" aria-labelledby="analysisTitle"><div class="dialog-head"><h2 id="analysisTitle">İlan analizi · 2.3</h2><button class="close" data-close="analysisDialog" aria-label="Kapat">×</button></div><div class="dialog-content" id="analysisContent"></div></dialog>
+  <dialog id="gmailDialog" aria-labelledby="gmailTitle"><div class="dialog-head"><h2 id="gmailTitle">Gmail ilanlarını içe aktar</h2><button class="close" data-close="gmailDialog" aria-label="Kapat">×</button></div><div class="dialog-content"><p class="details">Yalnızca MotorRadar Gmail v2 JSON dosyasını kullan. İçe aktarım mevcut ilanlarını, favorilerini ve fiyat geçmişini silmez. E-postadaki tarihsel fiyat güncel fiyat olarak kabul edilmez.</p><div id="gmailPreview" role="status" aria-live="polite">Önce Drive'daki MotorRadar-Gmail-Guvenli-v2.json dosyasını seç.</div><div class="controls"><button class="btn" id="gmailChoose" type="button">Dosya seç</button><button class="btn primary" id="gmailApply" type="button" disabled>Kontrol edip aktar</button></div></div></dialog>
+  <input id="gmailFile" type="file" accept="application/json,.json" hidden>
   <input id="importFile" type="file" accept="application/json,.json" hidden>
   <script src="listing-url.js"></script>
+  <script src="gmail-import.js"></script>
   <script src="analysis.js"></script>
   <script src="ocr-parser.js"></script>
   <script src="vendor/ocr/tesseract.min.js"></script>
@@ -118,7 +121,7 @@
     const knownId=x=>{const p=parseLink(x.url);return p&&(p.listingId||((p.short&&/^\d{6,15}$/.test(x.listingId||''))?x.listingId:null))};
     const duplicate=(x,all)=>{const p=parseLink(x.url);return p&&all.some(y=>y.id!==x.id&&((parseLink(y.url)?.key===p.key)||(knownId(x)&&knownId(x)===knownId(y))))};
     const validListing=x=>x&&typeof x==='object'&&typeof x.id==='string'&&x.id.length<100&&typeof x.title==='string'&&typeof x.model==='string'&&(x.price===null||(Number.isFinite(x.price)&&x.price>0))&&(x.km===null||(Number.isFinite(x.km)&&x.km>=0))&&(x.year===null||(Number.isFinite(x.year)&&x.year>=1950&&x.year<=2035))&&Array.isArray(x.history)&&x.history.every(h=>h&&Number.isFinite(h.price)&&h.price>0&&typeof h.at==='string');
-    const statuses={following:'Takip ediliyor',sold:'Satıldı',removed:'Kaldırıldı',gave_up:'Vazgeçtim'};
+    const statuses={unknown:'Durumu bilinmiyor',following:'Takip ediliyor',sold:'Satıldı',removed:'Kaldırıldı',gave_up:'Vazgeçtim'};
     const validDate=value=>typeof value==='string'&&value.trim()!==''&&Number.isFinite(Date.parse(value));
     const withFavorite=x=>({...x,favorite:x.favorite===true,status:Object.hasOwn(statuses,x.status)?x.status:'following',lastCheckedAt:validDate(x.lastCheckedAt)?x.lastCheckedAt:null});
     const needsCheck=x=>{const since=x.lastCheckedAt||x.createdAt;return x.status==='following'&&validDate(since)&&Date.now()-Date.parse(since)>=7*24*60*60*1000};
@@ -138,7 +141,8 @@
       if(duplicate({id,url,listingId},items)){alert('Bu bağlantı veya doğrulanmış ilan numarası zaten kayıtlı.');return}
       if(!confirm('Bilgileri kontrol ettin mi? Bu ilan cihazına kaydedilsin mi?'))return;
       const previous=items;const now=new Date().toISOString();const x={...old,status:old?.status||'following',lastCheckedAt:old?.lastCheckedAt||null,favorite:old?.favorite===true,id:id||crypto.randomUUID(),title,brand,model,city,year,km,price,listingId,url:url?normalizedUrl(url):'',notes,description,createdAt:old?.createdAt||now,history:priceHistory(old,price,now)};if(old){items=items.map(y=>y.id===id?x:y)}else items=[x,...items];if(!persist()){items=previous;return;}$('editDialog').close();render();if(old&&price!==null&&old.price!==null&&price<old.price)alert('Fiyat düşüşü kaydedildi: '+money(old.price-price)+' azaldı.');}
-    function card(x){const c=changed(x);let changeHTML='<span class="change">İlk kayıt</span>';if(c&&c.delta!==0)changeHTML=`<span class="change ${c.delta<0?'down':'up'}">${c.delta<0?'↘':'↗'} ${c.delta<0?'−':'+'}${money(Math.abs(c.delta))} (${Math.abs(c.pct).toFixed(1)}%)</span>`;const safeUrl=normalizedUrl(x.url||'');return `<article class="listing"><div class="listing-header"><button type="button" class="btn favorite" data-favorite="${escape(x.id)}" aria-pressed="${x.favorite===true}" aria-label="${escape(x.title)} favori">${x.favorite===true?'★':'☆'}</button><div class="tags"><span class="tag source">${escape(source(safeUrl))}</span>${x.price!==null&&x.price<=250000?'<span class="tag">BÜTÇEYE UYGUN</span>':''}</div><label class="checkrow"><input data-choose="${escape(x.id)}" type="checkbox" ${selected.has(x.id)?'checked':''} aria-label="${escape(x.title)} karşılaştırmaya ekle"> Seç</label></div><div><h3>${escape(x.title)}</h3><div class="details">${escape([x.brand,x.model].filter(Boolean).join(' ')||'Model bilinmiyor')} · ${escape(x.year??'Yıl bilinmiyor')} · ${x.km===null?'Km bilinmiyor':fmt(x.km)+' km'} ${x.city?'· '+escape(x.city):''}</div></div><div class="price-row"><span class="price">${money(x.price)}</span>${changeHTML}</div><div class="details">Kaydedildi: ${dateText(x.createdAt)}</div><label class="details">İlan durumu<select data-status="${escape(x.id)}" aria-label="${escape(x.title)} ilan durumu">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${x.status===value?'selected':''}>${label}</option>`).join('')}</select></label><div class="details">Son manuel kontrol: ${x.lastCheckedAt?dateText(x.lastCheckedAt):'Henüz kontrol edilmedi'}</div>${needsCheck(x)?'<div class="notice" role="status">Kontrol zamanı: Bu ilan en az 7 gündür manuel kontrol edilmedi. İlanı açıp güncel durumunu kontrol et.</div>':''}<div class="controls"><button class="btn small" data-checked="${escape(x.id)}">Kontrol ettim</button><button class="btn small" data-price="${escape(x.id)}">Hızlı fiyat güncelle</button></div><button class="btn light" data-analyze="${escape(x.id)}">İlanı analiz et</button><div class="listing-footer"><button class="btn small" data-detail="${escape(x.id)}">Geçmiş / Düzenle</button>${safeUrl?`<a class="link" href="${escape(safeUrl)}" target="_blank" rel="noopener noreferrer">İlanı aç ↗</a>`:'<span class="details">Bağlantı yok</span>'}</div></article>`;}
+    function gmailBadge(x){const a=Array.isArray(x.gmailEvents)?x.gmailEvents:[];const e=a.at(-1);if(!e)return '';const price=e.kind==='price_drop'?e.newPrice:e.price;return `<div class="notice"><strong>${e.kind==='price_drop'?'Gmail fiyat düşüşü':'Gmail ilan bildirimi'}</strong> · ${dateText(e.observedAt)} · Bildirim fiyatı: ${price===null||price===undefined?'Belirtilmedi':money(price)}<div class="details">İlanın güncel fiyatı ve aktifliği doğrulanmadı. İlanı açarak kontrol et.</div></div>`;}
+    function card(x){const c=changed(x);let changeHTML='<span class="change">İlk kayıt</span>';if(c&&c.delta!==0)changeHTML=`<span class="change ${c.delta<0?'down':'up'}">${c.delta<0?'↘':'↗'} ${c.delta<0?'−':'+'}${money(Math.abs(c.delta))} (${Math.abs(c.pct).toFixed(1)}%)</span>`;const safeUrl=normalizedUrl(x.url||'');return `<article class="listing"><div class="listing-header"><button type="button" class="btn favorite" data-favorite="${escape(x.id)}" aria-pressed="${x.favorite===true}" aria-label="${escape(x.title)} favori">${x.favorite===true?'★':'☆'}</button><div class="tags"><span class="tag source">${escape(source(safeUrl))}</span>${x.price!==null&&x.price<=250000?'<span class="tag">BÜTÇEYE UYGUN</span>':''}</div><label class="checkrow"><input data-choose="${escape(x.id)}" type="checkbox" ${selected.has(x.id)?'checked':''} aria-label="${escape(x.title)} karşılaştırmaya ekle"> Seç</label></div><div><h3>${escape(x.title)}</h3><div class="details">${escape([x.brand,x.model].filter(Boolean).join(' ')||'Model bilinmiyor')} · ${escape(x.year??'Yıl bilinmiyor')} · ${x.km===null?'Km bilinmiyor':fmt(x.km)+' km'} ${x.city?'· '+escape(x.city):''}</div></div><div class="price-row"><span class="price">${money(x.price)}</span>${changeHTML}</div><div class="details">Kaydedildi: ${dateText(x.createdAt)}</div>${gmailBadge(x)}<label class="details">İlan durumu<select data-status="${escape(x.id)}" aria-label="${escape(x.title)} ilan durumu">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${x.status===value?'selected':''}>${label}</option>`).join('')}</select></label><div class="details">Son manuel kontrol: ${x.lastCheckedAt?dateText(x.lastCheckedAt):'Henüz kontrol edilmedi'}</div>${needsCheck(x)?'<div class="notice" role="status">Kontrol zamanı: Bu ilan en az 7 gündür manuel kontrol edilmedi. İlanı açıp güncel durumunu kontrol et.</div>':''}<div class="controls"><button class="btn small" data-checked="${escape(x.id)}">Kontrol ettim</button><button class="btn small" data-price="${escape(x.id)}">Hızlı fiyat güncelle</button></div><button class="btn light" data-analyze="${escape(x.id)}">İlanı analiz et</button><div class="listing-footer"><button class="btn small" data-detail="${escape(x.id)}">Geçmiş / Düzenle</button>${safeUrl?`<a class="link" href="${escape(safeUrl)}" target="_blank" rel="noopener noreferrer">İlanı aç ↗</a>`:'<span class="details">Bağlantı yok</span>'}</div></article>`;}
     function updateFilter(){let current=$('modelFilter').value;const models=[...new Set(items.map(x=>x.model).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));$('modelFilter').innerHTML='<option value="all">Tüm modeller</option>'+models.map(m=>`<option value="${escape(m)}">${escape(m)}</option>`).join('');$('modelFilter').value=models.includes(current)?current:'all'}
     const filterBounds=['minPrice','maxPrice','minKm','maxKm'];
     const bound=id=>{const value=$(id).value.trim();return value===''?null:Number(value)};
@@ -201,6 +205,32 @@
     $('cards').addEventListener('click',e=>{const checked=e.target.closest('[data-checked]');if(checked)updateListing(checked.dataset.checked,{lastCheckedAt:new Date().toISOString()});const price=e.target.closest('[data-price]');if(price)openQuickPrice(price.dataset.price);const favorite=e.target.closest('[data-favorite]');if(favorite)toggleFavorite(favorite.dataset.favorite);if(e.target.id==='emptyAdd')openEdit('');const analysis=e.target.closest('[data-analyze]');if(analysis)openAnalysis(analysis.dataset.analyze);const btn=e.target.closest('[data-detail]');if(btn)openDetail(btn.dataset.detail)});
     $('cards').addEventListener('change',e=>{const statusId=e.target.dataset.status;if(statusId&&Object.hasOwn(statuses,e.target.value)){updateListing(statusId,{status:e.target.value});return}const id=e.target.dataset.choose;if(!id)return;if(e.target.checked){if(selected.size>=3){e.target.checked=false;alert('Aynı anda en fazla 3 ilan karşılaştırılabilir.');return}selected.add(id)}else selected.delete(id);$('selectedCount').textContent=selected.size;$('compareBtn').disabled=selected.size<2});
     document.querySelectorAll('[data-close]').forEach(b=>b.onclick=() => $(b.dataset.close).close());
+    let gmailPreviewData=null;
+    $('gmailImportBtn').onclick=()=>{gmailPreviewData=null;$('gmailApply').disabled=true;$('gmailPreview').textContent='Önce Drive\'daki MotorRadar-Gmail-Guvenli-v2.json dosyasını seç.';showDialog('gmailDialog')};
+    $('gmailChoose').onclick=()=>$('gmailFile').click();
+    $('gmailFile').onchange=async e=>{
+      const file=e.target.files?.[0];if(!file)return;
+      gmailPreviewData=null;$('gmailApply').disabled=true;
+      try{
+        if(file.size>5*1024*1024)throw Error('Dosya 5 MB sınırını aşıyor.');
+        const imported=MotorGmailImport.read(await file.text());
+        const planned=MotorGmailImport.preview(items,imported);
+        gmailPreviewData=planned;
+        $('gmailPreview').innerHTML=`<p><strong>${imported.events.length}</strong> geçerli bildirim · <strong>${planned.newCount}</strong> yeni ilan · <strong>${planned.updateCount}</strong> mevcut ilana bildirim eklenecek · <strong>${planned.ignored}</strong> geçersiz kayıt atlandı.</p><p>Mevcut güncel fiyatlar, fiyat geçmişleri ve ilan durumları değişmeyecek.</p><ul>${planned.entries.slice(0,10).map(g=>`<li>${escape(g.events.at(-1).title||g.events.at(-1).url)} — ${g.existing?'Mevcut ilan':'Yeni kayıt'} (${g.events.length} bildirim)</li>`).join('')}</ul>${planned.entries.length>10?'<p>Diğer kayıtlar önizlemede kısaltıldı.</p>':''}`;
+        $('gmailApply').disabled=planned.entries.length===0;
+      }catch(err){$('gmailPreview').textContent=err.message||'Gmail aktarım dosyası okunamadı.';}
+      finally{e.target.value=''}
+    };
+    $('gmailApply').onclick=()=>{
+      if(!gmailPreviewData)return;
+      if(!confirm('Gmail bildirimleri aktarılsın mı? Mevcut fiyatlar ve geçmişleri korunacak.'))return;
+      const result=MotorGmailImport.apply(items,gmailPreviewData);
+      if(!result.items.every(validListing)){alert('Aktarım dosyasında geçersiz ilan bulundu.');return;}
+      const previous=items;items=result.items.map(withFavorite);
+      if(!persist()){items=previous;return;}
+      $('gmailDialog').close();gmailPreviewData=null;selected.clear();render();
+      alert(result.added+' yeni ilan ve '+result.updated+' kayıt için Gmail bildirimi kaydedildi.');
+    };
     $('backupBtn').onclick=()=>download('motorradar-yedek-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({app:'MotorRadar',version:'2.5',exportedAt:new Date().toISOString(),listings:items},null,2),'application/json');
     $('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async(e)=>{const file=e.target.files?.[0];if(!file)return;if(file.size>5*1024*1024){alert('Yedek dosyası 5 MB altında olmalı.');return}try{const d=JSON.parse(await file.text());if(d?.app!=='MotorRadar'||!Array.isArray(d.listings)||d.listings.length>10000||!d.listings.every(validListing)){throw Error('Geçersiz yedek dosyası')}if(!confirm(`${d.listings.length} ilan içe aktarılacak. Mevcut kayıtların üzerine yazılsın mı?`))return;const restored=[];for(const x of d.listings){if(restored.some(y=>y.id===x.id)||duplicate(x,restored))throw Error('Tekrarlanan ilan');restored.push(withFavorite(x))}const previous=items;items=restored;if(!persist()){items=previous;return}selected.clear();render();alert('Yedek yüklendi.')}catch{alert('Geçersiz veya bozuk MotorRadar yedeği.')}finally{e.target.value=''}};
     render();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
