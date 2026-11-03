@@ -26,6 +26,11 @@ test('iPhone: Gmail cleanup, status/source filters and email timeline preserve u
  await expect(page.locator('.listing')).toHaveCount(0);
  await page.locator('#statusFilter').selectOption('unknown');
  await expect(page.locator('.listing')).toHaveCount(1);
+ await page.locator('#sort').selectOption('gmailNew');
+ await page.locator('#gmailBudgetOnly').check();
+ await expect(page.locator('.listing')).toHaveCount(0);
+ await page.locator('#gmailBudgetOnly').uncheck();
+ await expect(page.locator('.listing')).toHaveCount(1);
  await page.locator('[data-detail=mail]').click();
  await expect(page.locator('#detailContent')).toContainText('Gmail fiyat bildirim geçmişi (2)');
  await expect(page.locator('#detailContent')).toContainText('273.000 ₺');
