@@ -64,5 +64,23 @@
   const estimated=known.some(l=>l.status==='estimated'),total=unknown.length?null:subtotal;
   return {known:known.filter(l=>l.status==='confirmed'),estimates:known.filter(l=>l.status==='estimated'),manual:known.filter(l=>l.origin==='manual'),motorMissing:lines[0].amount===null,partialRemaining:lines[0].amount===null?null:(Math.round(budget*100)-Math.round(subtotal*100))/100,lines,unknown,subtotal,extras,total,remaining:total===null?null:(Math.round(budget*100)-Math.round(total*100))/100,estimated,label:unknown.length?'Eksik kalemli ara toplam':estimated?'Tahmini senaryo toplamı':'Kesinleşen toplam',insurance};
  }
- const api={sourceFee,sourceStates,amount,date,today,safeUrl,current,validate,notary,cap,calculate};if(typeof module!=='undefined')module.exports=api;else root.MotorPurchaseCosts=api;
+ // Legacy records are read-only evidence, never implicit approvals or budget inputs.
+ const legacyTargets={service:'service',parts:'parts',other:'other',insurance:'insuranceQuote',inspection:'inspectionQuote'};
+ function expenseState(p,key){return !amount(p[key])?'Girilmedi':p[key+'Approved']===true?'Onaylı · bütçeye dahil':'Tutar mevcut, onay gerekli';}
+ function legacyRows(x,p,d,budget,at=today()){
+  const c=calculate(x,p,d,budget,at);
+  return Object.entries(S.costFields).filter(([key])=>Object.hasOwn(x.decision?.costs||{},key)).map(([key,label])=>{
+   const old=x.decision.costs[key],line=c.lines.find(l=>l.key===key);
+   return {key,label,old:amount(old)?old:null,value:line?.amount??null,origin:line?.origin||'unknown',target:legacyTargets[key]||null,difference:amount(old)&&amount(line?.amount)?Math.round((line.amount-old)*100)/100:null};
+  });
+ }
+ function legacyTransfer(x,p,key,consent=false){
+  const value=x.decision?.costs?.[key];
+  if(consent!==true||!Object.hasOwn(legacyTargets,key)||!amount(value))throw Error('Geçerli kalem ve açık aktarım onayı gerekli');
+  // An old default zero and an old price are not proof of user approval.
+  if(['service','parts','other'].includes(key))return {...p,[key]:value,[key+'Approved']:false};
+  if(key==='insurance')return {...p,insuranceMode:'quote',insuranceQuote:value,quoteApproved:false,quoteDate:''};
+  return {...p,providerId:'custom',inspectionQuote:value,providerQuoteApproved:false};
+ }
+ const api={expenseState,legacyRows,legacyTransfer,sourceFee,sourceStates,amount,date,today,safeUrl,current,validate,notary,cap,calculate};if(typeof module!=='undefined')module.exports=api;else root.MotorPurchaseCosts=api;
 })(globalThis);
