@@ -107,3 +107,10 @@ Her karttaki **İlanı analiz et** düğmesi yalnızca kayıtlı ilanları kulla
 ### Doğrulama
 
 `npm ci && npm test` hesaplama, bağlantı, OCR ve kayıt regresyonlarını çalıştırır. `npx playwright install --with-deps webkit && npm run test:safari` iPhone 13 WebKit emülasyonunda OCR, eski kayıt, fiyat geçmişi, JSON yedekleme, karşılaştırma, analiz, XSS metni, 320/375/390px taşma ve çevrimdışı analizi doğrular. Fiziksel iPhone testi değildir. GitHub Actions aynı kontrolleri çalıştırır.
+
+## 2.5 — Manuel ilan takibi
+
+- Karttan **Takip ediliyor**, **Satıldı**, **Kaldırıldı** veya **Vazgeçtim** durumunu seçebilirsin. Durum değişikliği ilanı veya fiyat geçmişini silmez.
+- **Kontrol ettim** son manuel kontrol tarihini kaydeder. Yalnızca takip edilen ilanlarda son kontrolden 7 gün sonra kart içinde kontrol uyarısı görünür. Hiç kontrol edilmemiş ilanlarda süre kayıt tarihinden başlar; geçersiz/bilinmeyen tarihler için süre varsayılmaz. Otomatik tarama veya bildirim yoktur.
+- **Hızlı fiyat güncelle** yalnızca fiyatı ve mevcut biçimdeki fiyat geçmişini günceller. Aynı fiyat tekrar geçmişe eklenmez; fiyat güncellemek kontrol tarihini değiştirmez.
+- Eski kayıtlarda durum `following` (Takip ediliyor), `lastCheckedAt` ise `null` olur. `motorradar-v1` anahtarı, eski JSON yedekleri, özel alanlar ve fiyat geçmişi korunur. Yeni yedekler eklenen alanları da saklar.
