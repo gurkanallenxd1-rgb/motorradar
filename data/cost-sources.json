@@ -62,7 +62,7 @@
       "sourceUrl": "https://yamanlarotoekspertizalibeykoy.com/motosiklet-ekspertiz-paketi",
       "amount": 4500,
       "checkedAt": "2026-11-03",
-      "verifiedAt": "2026-11-03",
+      "verifiedAt": null,
       "validFrom": null,
       "validTo": null,
       "access": "error",
@@ -71,7 +71,7 @@
       "motorcycleVerified": true,
       "scope": "Granaj, şasi, DYNO, yol testi, lastik ve dış aksam",
       "verificationMethod": "provider-search-index",
-      "reason": "Yayın geçerlilik dönemi belirtilmemiş; doğrudan sayfa 502. Randevuda teyit edin."
+      "reason": "Sağlayıcının arama dizinindeki paket yayını; canlı fiyat doğrulanamadı. Geçerlilik dönemi belirtilmemiş; doğrudan sayfa 502. Randevuda teyit edin."
     },
     {
       "id": "yamanlar-cekmekoy",
@@ -79,7 +79,7 @@
       "sourceUrl": "https://www.yamanlarotoekspertizcekmekoy.com/motosiklet-ekspertiz-paketi",
       "amount": 4500,
       "checkedAt": "2026-11-03",
-      "verifiedAt": "2026-11-03",
+      "verifiedAt": null,
       "validFrom": null,
       "validTo": null,
       "access": "error",
@@ -88,7 +88,7 @@
       "motorcycleVerified": true,
       "scope": "Granaj, şasi, DYNO, yol testi, lastik ve dış aksam",
       "verificationMethod": "provider-search-index",
-      "reason": "Yayın geçerlilik dönemi belirtilmemiş; doğrudan sayfa 502. Randevuda teyit edin."
+      "reason": "Sağlayıcının arama dizinindeki paket yayını; canlı fiyat doğrulanamadı. Geçerlilik dönemi belirtilmemiş; doğrudan sayfa 502. Randevuda teyit edin."
     }
   ]
 }
