@@ -38,7 +38,7 @@ test('local optimized photos: gallery, main, replace, download, delete, reload a
  const download=page.waitForEvent('download');await page.locator('#photoGallery').getByText('İndir',{exact:true}).first().click();expect((await download).suggestedFilename()).toMatch(/jpg$/);
  await page.locator('#photoGallery').getByText('Değiştir',{exact:true}).first().click();await addPhoto(page,file);await expect(page.locator('#photoGallery img')).toHaveCount(2);
  await page.locator('#photoGallery').getByText('Sil',{exact:true}).last().click();await expect(page.locator('#photoGallery img')).toHaveCount(1);
- await page.locator('[data-close=photoDialog]').click();await expect(page.locator('[data-photo] img')).toHaveAttribute('loading','lazy');expect(await saved(page)).toEqual([row]);
+ await page.locator('[data-close=photoDialog]').click();await expect(page.locator('[data-photo] img')).toHaveAttribute('loading','eager');expect(await saved(page)).toEqual([row]);
  const raw=await page.evaluate(()=>localStorage.getItem('motorradar-v1'));expect(raw).not.toContain('base64');expect(raw).not.toContain('blob:');
  await page.reload();await expect(page.locator('[data-photo] img')).toBeVisible();
  for(const width of [320,375,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('[data-photos]').click();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('[data-close=photoDialog]').click()}
