@@ -12,7 +12,7 @@ test('compact cards preserve true ties, distinguish total overrun and disclose u
  await expect(a.locator('.decision-budget')).toContainText('242.511');
  await expect(a.locator('.decision-budget')).toContainText('Tam bütçe hesaplanamadı');
  await expect(a.locator('.decision-budget')).not.toContainText('bütçeye uygun');
- await expect(a.locator('.decision-detail-body')).toBeHidden();await a.locator('summary').click();
+ await expect(a.locator('.decision-detail-body')).toBeHidden();await a.locator('.candidate-detail > summary').click();
  await expect(a.locator('.decision-detail-body')).toContainText('25.0 / 50');
  await expect(a.locator('.decision-detail-body')).toContainText('15.0 / 30');
  await expect(a.locator('.decision-detail-body')).toContainText('10.0 / 20');
@@ -31,16 +31,16 @@ test('40 candidates paginate, accordions support keyboard and narrow Safari layo
  const candidates=page.locator('[data-panel-key="candidates"]');await candidates.locator(':scope > summary').focus();await page.keyboard.press('Enter');await expect(page.locator('.decision-card').first()).toBeHidden();await page.keyboard.press('Space');await expect(page.locator('.decision-card').first()).toBeVisible();
  for(const width of [320,375,390]){
   await page.setViewportSize({width,height:844});
-  const card=page.locator('.decision-card').first();if(!await card.locator('details').evaluate(e=>e.open))await card.locator('summary').click();
+  const card=page.locator('.decision-card').first();if(!await card.locator('.candidate-detail').evaluate(e=>e.open))await card.locator('.candidate-detail > summary').click();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   expect(await page.locator('#decisionPanel').evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);
-  const summary=card.locator('summary');expect((await summary.boundingBox()).height).toBeGreaterThanOrEqual(44);
+  const summary=card.locator('.candidate-detail > summary');expect((await summary.boundingBox()).height).toBeGreaterThanOrEqual(44);
   await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
  }
  // Re-rendering a budget preference preserves disclosure state and every stored listing byte.
  const before=await page.evaluate(()=>localStorage.getItem('motorradar-v1'));
  await page.locator('#selectorBudget').fill('230000');await page.locator('#selectorBudget').press('Tab');
- await expect(page.locator('.decision-card').first().locator('details')).toHaveAttribute('open','');
+ await expect(page.locator('.decision-card').first().locator('.candidate-detail')).toHaveAttribute('open','');
  await expect(page.locator('.decision-card').first().locator('.decision-budget')).toContainText('Tam bütçe hesaplanamadı');
  expect(await page.evaluate(()=>localStorage.getItem('motorradar-v1'))).toBe(before);
 });
@@ -48,7 +48,7 @@ test('panel contrast, accessible controls and photo bytes survive read-only deci
  await seed(page,[rec('a'),rec('b')]);
  await page.evaluate(async()=>{const blob=new Blob(['photo-sentinel'],{type:'image/jpeg'});await MotorPhotoStore.set('a',[{image:blob,thumb:blob}])});
  const snapshot=await page.locator('#smartSelector').ariaSnapshot();expect(snapshot).toContain('spinbutton "Bütçen (TL)"');expect(snapshot).toContain('article "Motor a"');
- await page.locator('.decision-card').first().locator('summary').click();await expect(page.getByLabel('Motor a · Detayları göster')).toBeVisible();
+ await page.locator('.decision-card').first().locator('.candidate-detail > summary').click();await expect(page.getByLabel('Motor a · Detayları göster')).toBeVisible();
  const contrast=await page.evaluate(()=>{
   const luminance=c=>{const rgb=c.match(/[\d.]+/g).slice(0,3).map(Number).map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4});return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
   return ['#decisionPanel','.decision-caption','.decision-budget','#smartSelector .btn'].map(selector=>{const e=document.querySelector(selector),style=getComputedStyle(e);let bg=e;while(getComputedStyle(bg).backgroundColor==='rgba(0, 0, 0, 0)')bg=bg.parentElement;const a=luminance(style.color),b=luminance(getComputedStyle(bg).backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)});
