@@ -11,11 +11,11 @@ test('weights warn, persist and update comparison; ties and legacy stay explicit
 });
 test('unified inspection persists without changing old costs or listing metadata',async({page})=>{
  await seed(page);const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));
- await page.locator('[data-research-open="a"]').first().click();await page.getByRole('tab',{name:'Ekspertiz'}).click();
+ await page.locator('[data-research-open="a"]:visible').first().click();await page.getByRole('tab',{name:'Ekspertiz'}).click();
  await expect(page.locator('#check-chassis')).toHaveValue('Kontrol edilmedi');await page.locator('#check-chassis').selectOption('Sorun var');await page.getByRole('tab',{name:'Notlar',exact:true}).click();await page.locator('#inspectionNotes').fill('Kullanıcı kontrolü');
  for(const width of [320,375,390]){await page.setViewportSize({width,height:844});expect(await page.locator('#researchDialog .dialog-content').evaluate(e=>e.scrollWidth<=e.clientWidth+1)).toBe(true)}
- await page.locator('#researchDialog .close').click();await page.locator('[data-research-open="b"]').first().click();await page.getByRole('tab',{name:'Ekspertiz'}).click();await expect(page.locator('#check-chassis')).toHaveValue('Kontrol edilmedi');await page.locator('#researchDialog .close').click();
- await page.reload();for(const id of ['decisionPanel']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await page.locator('[data-research-open="a"]').first().click();await page.getByRole('tab',{name:'Ekspertiz'}).click();await expect(page.locator('#check-chassis')).toHaveValue('Sorun var');await expect(page.locator('#inspectionNotes')).toHaveValue('Kullanıcı kontrolü');
+ await page.locator('#researchDialog .close').click();await page.locator('[data-research-open="b"]:visible').first().click();await page.getByRole('tab',{name:'Ekspertiz'}).click();await expect(page.locator('#check-chassis')).toHaveValue('Kontrol edilmedi');await page.locator('#researchDialog .close').click();
+ await page.reload();for(const id of ['decisionPanel']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await page.locator('[data-research-open="a"]:visible').first().click();await page.getByRole('tab',{name:'Ekspertiz'}).click();await expect(page.locator('#check-chassis')).toHaveValue('Sorun var');await expect(page.locator('#inspectionNotes')).toHaveValue('Kullanıcı kontrolü');
  const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));for(let i=0;i<after.length;i++){const {decision,...rest}=after[i];expect(rest).toEqual(before[i])}
- await page.locator('#researchDialog .close').click();await page.locator('[data-research-open="legacy"]').first().click();await expect(page.locator('#researchResult')).toContainText('Motor fiyatı eksik');
+ await page.locator('#researchDialog .close').click();await page.locator('[data-research-open="legacy"]:visible').first().click();await expect(page.locator('#researchResult')).toContainText('Motor fiyatı eksik');
 });

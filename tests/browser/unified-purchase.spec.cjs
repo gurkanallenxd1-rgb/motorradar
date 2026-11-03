@@ -8,7 +8,7 @@ async function seed(page){
  await page.route('**/data/cost-sources.json',r=>r.fulfill({json:data}));await page.goto('/');
  await page.evaluate(async({xs,p})=>{localStorage.setItem('motorradar-v1',JSON.stringify(xs));localStorage.setItem('motorradar-costs-v37',JSON.stringify(p));localStorage.setItem('motorradar-budget','290000');localStorage.setItem('motorradar-drive-sentinel','koru');const b=new Blob(['photo-original']);await MotorPhotoStore.set('r25-a',[{image:b,thumb:b}])},{xs:Array.from({length:81},(_,i)=>rec(i===0?'r25-a':i===1?'r25-b':i===2?'mt25-a':'listing-'+i,i)),p:{'r25-a':scenario,'r25-b':{service:700,serviceApproved:true},'mt25-a':{service:900}}});await page.reload();
 }
-const open=async(page,id='r25-a')=>page.locator(`[data-research-open="${id}"]`).first().click();
+const open=async(page,id='r25-a')=>page.locator(`[data-research-open="${id}"]:visible`).first().click();
 async function fits(page){for(const width of [320,375,390]){await page.setViewportSize({width,height:844});for(const tab of ['Masraflar','Teklifler','Ekspertiz']){await page.getByRole('tab',{name:tab}).click();if(tab==='Teklifler')await page.locator('#costEditor').evaluate(e=>e.open=true);expect(await page.locator('#researchDialog .dialog-content').evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(1);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}}}
 test('approved 500 survives old zero, read-only views preserve 81 records and photos at all widths',async({page})=>{
  await seed(page);const before=await page.evaluate(()=>JSON.stringify(localStorage));await open(page);
