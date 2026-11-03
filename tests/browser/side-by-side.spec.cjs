@@ -12,10 +12,10 @@ for(const count of [2,3])test(`${count} candidates: compact columns, disclosure 
  for(const width of [320,375,390]){
   await page.setViewportSize({width,height:844});
   const region=page.locator('#smartSelector .decision-cards');await geometry(region,count);
-  const first=region.locator('.decision-card').first();await first.locator('summary').click();await expect(first.locator('.decision-detail-body')).toBeVisible();await geometry(region,count);
+  const first=region.locator('.decision-card').first();await first.locator('.candidate-detail > summary').click();await expect(first.locator('.decision-detail-body')).toBeVisible();await geometry(region,count);
   await expect(first).toContainText('Fiyat avantajı · 10.000 TL');await expect(first).toContainText('Daha düşük kilometre · 5.000 km');
   await expect(first.locator('.decision-detail-body')).toContainText('Girilmedi');await expect(first.locator('.inspection-note')).toHaveText('Kullanıcı beyanı <script>');
-  await first.locator('summary').click();
+  await first.locator('.candidate-detail > summary').click();
   if(count===3){await region.focus();await page.keyboard.press('ArrowRight');await expect.poll(()=>region.evaluate(e=>e.scrollLeft)).toBeGreaterThan(0);await region.locator('.decision-card').last().scrollIntoViewIfNeeded();await expect.poll(()=>region.evaluate(e=>e.scrollLeft)).toBeGreaterThan(0);await region.evaluate(e=>e.scrollLeft=0)}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));const footer=await page.locator('.footer-bar').boundingBox(),last=await page.locator('.listing').last().boundingBox();expect(last.y+last.height).toBeLessThanOrEqual(footer.y);

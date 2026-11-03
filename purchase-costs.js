@@ -27,28 +27,42 @@
   const s=d?.insurance,r=p.province!==undefined&&p.province!==''&&p.step!==undefined&&p.step!==''?s?.rows.find(r=>r.province===Number(p.province)&&r.step===Number(p.step)&&(r.vehicleClass||'motorcycle')===(p.vehicleClass||'motorcycle')&&(r.usageProfile||'private-other-no-disability')===(p.usageProfile||'private-other-no-disability')):undefined;
   return {amount:r?.amount??null,current:current(s,at)&&(!r?.sourceUrl||(r.validFrom===s.validFrom&&r.validTo===s.validTo&&current({...s,...r},at))),source:r?.sourceUrl?{...s,...r}:s};
  }
+ // Only a current, applicable transaction fee may be offered for adoption.
+ function sourceFee(key,p,d,at=today()){
+  const src=d?.[key];
+  if(!current(src,at))return null;
+  if(key==='registration'){
+   if(p.registrationRequired==='no')return 0;
+   if(p.registrationRequired==='unknown'||(!p.registrationRequired&&!['used-sale','first-registration'].includes(p.transaction||'used-sale')))return null;
+  }else if(key!=='notaryService'||!Array.isArray(src.transactions)||!src.transactions.includes(p.transaction||'used-sale'))return null;
+  return amount(src.amount)?src.amount:null;
+ }
+ const sourceStates={official:['§','Resmî kaynaktan hesaplandı'],manual:['✎','Kullanıcı tarafından girildi'],quote:['✓','Kullanıcı tarafından doğrulanmış gerçek teklif'],published:['◇','Sağlayıcının yayımladığı fiyat; teyit gerekli'],unknown:['?','Bilinmiyor veya güncelliğini kaybetmiş']};
  function calculate(x,p={},d=null,budget=250000,at=today()){
-  const lines=[],add=(key,label,value,status,source=null,note='')=>lines.push({key,label,amount:amount(value)?value:null,status:amount(value)?status:'unknown',source,note});
+  const lines=[],add=(key,label,value,status,source=null,note='',origin=null)=>lines.push({key,label,amount:amount(value)?value:null,status:amount(value)?status:'unknown',source,note,origin:amount(value)?(origin||(status==='confirmed'?(source?'official':'manual'):'manual')):'unknown'});
   add('sale','Doğrulanmış satış fiyatı',S.verifiedPrice(x),'confirmed',null,x.priceVerifiedAt||'');
   add('duty','Satış / devir harcı',notary(S.verifiedPrice(x),p,d,at),'confirmed',d?.notary,'Harç matrahı kasko değerinin altında olamaz; noterle teyit edin.');
-  const documentNeeded=p.registrationRequired==='no'||p.registrationRequired==='unknown'?false:p.registrationRequired==='yes'?true:['used-sale','first-registration'].includes(p.transaction||'used-sale');
   for(const [key,label,src] of [['notaryService','Noter işlem bedeli',d?.notaryService],['registration','Ruhsat / tescil belgesi',d?.registration]]){
-   const applicable=key!=='registration'||documentNeeded;
-   const sourced=key==='registration'&&p.registrationRequired==='no'?0:applicable&&current(src,at)?src.amount:null;
-   const manual=amount(p[key])&&p[key+'Source']!==true;
-   add(key,label,manual?p[key]:sourced,manual?'estimated':'confirmed',src,manual?'Kullanıcı senaryosu':key==='registration'&&!documentNeeded?(p.registrationRequired==='no'?'Belge düzenlenmiyor; bedel uygulanmadı':'Belge düzenleme ihtiyacı bilinmiyor'):src?.reason);
+   const sourced=sourceFee(key,p,d,at),manual=amount(p[key])&&p[key+'Source']!==true;
+   const accepted=p[key+'SourceAmount'];
+   // A refreshed source cannot silently replace a previously accepted amount.
+   const value=manual?p[key]:amount(accepted)&&accepted!==sourced?null:sourced;
+   add(key,label,value,manual?'estimated':'confirmed',src,manual?'Kullanıcı senaryosu':sourced===null?'Kaynak güncel değil veya işlem kapsamı bilinmiyor':key==='registration'&&sourced===0?'Belge düzenlenmiyor; bedel uygulanmadı':amount(accepted)&&accepted!==sourced?'Kaynak tutarı değişti; yeniden onay gerekli':src?.reason,manual?'manual':'official');
   }
   const insurance=cap(p,d,at);
-  add('insurance',p.insuranceMode==='quote'?'Kullanıcının aldığı gerçek sigorta teklifi':'SBM resmî tavan primi · teklif değildir',p.insuranceMode==='quote'?(p.quoteApproved===true&&date(p.quoteDate)&&p.quoteDate<=at?p.insuranceQuote:null):(insurance.current?insurance.amount:null),'estimated',p.insuranceMode==='quote'?null:insurance.source,p.insuranceMode==='quote'?(date(p.quoteDate)?'Teklif tarihi: '+p.quoteDate:'Teklif tarihi eksik'):(insurance.current?'Gerçek prim farklı olabilir':'Tarife güncel değil / doğrulanamadı'));
+  const validQuote=p.insuranceMode==='quote'&&p.quoteApproved===true&&date(p.quoteDate)&&p.quoteDate<=at;
+  add('insurance','Kullanıcının aldığı gerçek sigorta teklifi',validQuote?p.insuranceQuote:null,'estimated',null,date(p.quoteDate)?'Teklif tarihi: '+p.quoteDate+' · kullanıcı onayı '+(p.quoteApproved?'var':'gerekli'):'Teklif tarihi ve kullanıcı onayı gerekli','quote');
   const provider=d?.providers.find(s=>s.id===p.providerId);
-  add('inspection','Seçili motosiklet ekspertizi',p.providerId==='custom'?p.inspectionQuote:provider&&(!date(provider.validTo)||provider.validTo>=at)&&(!date(provider.validFrom)||provider.validFrom<=at)?provider.amount:null,'estimated',provider,provider?'Yayımlanmış fiyat, teyit gerekli. '+provider.reason:'Kullanıcının seçtiği firma / teklif');
+  const packageAmount=provider&&(!date(provider.validTo)||provider.validTo>=at)&&(!date(provider.validFrom)||provider.validFrom<=at)?provider.amount:null;
+  const inspectionConfirmed=p.providerQuoteId===p.providerId&&!!p.providerId&&p.providerQuoteApproved===true&&date(p.providerQuoteDate)&&p.providerQuoteDate<=at&&amount(p.providerQuote);
+  add('inspection','Seçili motosiklet ekspertizi',inspectionConfirmed?p.providerQuote:p.providerId==='custom'?p.inspectionQuote:packageAmount,'estimated',provider,inspectionConfirmed?'Teklif tarihi: '+p.providerQuoteDate+' · seçili firma için kullanıcı onaylı gerçek teklif':provider?'Yayımlanmış fiyat, teyit gerekli. Randevu öncesi fiyat ve hizmet kapsamını teyit edin. '+provider.reason:'Farklı firma için manuel tutar; doğrulanmış teklif onayı yok',inspectionConfirmed?'quote':provider?'published':'manual');
   for(const [key,label] of [['service','İlk bakım'],['parts','Lastik / zincir / fren'],['other','Diğer masraflar']]){
    const approved=p[key+'Approved']===true;
    add(key,label,approved?p[key]:null,'estimated',null,approved?'Kullanıcı onaylı bütçe gideri':'Kullanıcı onayı gerekli; gerek yoksa 0 girip onaylayın');
   }
   const unknown=lines.filter(l=>l.amount===null),known=lines.filter(l=>l.amount!==null),subtotal=known.reduce((s,l)=>s+Math.round(l.amount*100),0)/100,extras=known.filter(l=>l.key!=='sale').reduce((s,l)=>s+Math.round(l.amount*100),0)/100;
   const estimated=known.some(l=>l.status==='estimated'),total=unknown.length?null:subtotal;
-  return {known:known.filter(l=>l.status==='confirmed'),estimates:known.filter(l=>l.status==='estimated'),partialRemaining:(Math.round(budget*100)-Math.round(subtotal*100))/100,lines,unknown,subtotal,extras,total,remaining:total===null?null:(Math.round(budget*100)-Math.round(total*100))/100,estimated,label:unknown.length?'Eksik kalemli ara toplam':estimated?'Tahmini senaryo toplamı':'Kesinleşen toplam',insurance};
+  return {known:known.filter(l=>l.status==='confirmed'),estimates:known.filter(l=>l.status==='estimated'),manual:known.filter(l=>l.origin==='manual'),motorMissing:lines[0].amount===null,partialRemaining:lines[0].amount===null?null:(Math.round(budget*100)-Math.round(subtotal*100))/100,lines,unknown,subtotal,extras,total,remaining:total===null?null:(Math.round(budget*100)-Math.round(total*100))/100,estimated,label:unknown.length?'Eksik kalemli ara toplam':estimated?'Tahmini senaryo toplamı':'Kesinleşen toplam',insurance};
  }
- const api={amount,date,today,safeUrl,current,validate,notary,cap,calculate};if(typeof module!=='undefined')module.exports=api;else root.MotorPurchaseCosts=api;
+ const api={sourceFee,sourceStates,amount,date,today,safeUrl,current,validate,notary,cap,calculate};if(typeof module!=='undefined')module.exports=api;else root.MotorPurchaseCosts=api;
 })(globalThis);
