@@ -2,7 +2,7 @@ const {test,expect}=require('@playwright/test');
 const rec=(id,patch={})=>({id,title:'Motor '+id,model:'Yamaha MT-25',price:240000,verifiedPrice:240000,priceVerifiedAt:'2026-01-01',year:2024,km:10000,status:'following',favorite:false,lastCheckedAt:null,history:[{price:240000,at:'2026-01-01'}],createdAt:'2026-01-01',url:'',custom:'koru',...patch});
 async function seed(page){await page.goto('/');await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),[rec('a'),rec('b'),rec('legacy',{priceVerifiedAt:null,year:null})]);await page.reload()}
 test('weights warn, persist and update comparison; ties and legacy stay explicit',async({page})=>{
- await seed(page);await expect(page.locator('#smartSelector')).toContainText('Eşit puan');
+ await seed(page);await expect(page.locator('#smartSelector')).toContainText('Eşit puan');await page.locator('[data-panel-key="scoring"] > summary').click();
  await page.locator('#weight-price').fill('70');await expect(page.locator('#weightWarning')).toContainText('Geçersiz toplam');await expect(page.locator('#smartSelector')).toContainText('Puanlı aday yok');
  await page.locator('#weight-km').fill('10');await expect(page.locator('#weightWarning')).toHaveText('Toplam %100');
  await page.reload();await expect(page.locator('#weight-price')).toHaveValue('70');

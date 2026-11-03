@@ -1,3 +1,7 @@
+## MotorRadar 3.6.1 Beta — Karar paneli yenilemesi
+
+Açılır özet, aday kartları ve puan detayları; iPhone için yüksek kontrastlı açık panel. [Kullanım ve veri uyumluluğu](docs/3-6-1-karar-paneli.md).
+
 ## MotorRadar 3.6 Beta — Akıllı Karar Sistemi
 
 Kişisel ağırlıklar, ilan bazında toplam alım maliyeti ve kullanıcı beyanına dayalı ekspertiz listesi. [Kullanım ve veri uyumluluğu](docs/3-6-akilli-karar.md).
