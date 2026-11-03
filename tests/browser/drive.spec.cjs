@@ -150,6 +150,7 @@ test('Drive: optional polling, hidden page, pending preview and token expiration
  await expect(page.locator('#gmailApply')).toBeDisabled();expect(await saved(page)).toEqual([old]);
 });
 test('Drive: missing Cloud configuration keeps manual importer available without Google requests',async({page})=>{
+ await page.route('**/drive-config.js',r=>r.fulfill({contentType:'text/javascript',body:'window.MotorDriveConfig={};'}));
  const outside=[];page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8000'))outside.push(r.url())});
  await page.goto('/');await page.locator('#driveConnect').click();
  await expect(page.locator('#driveStatus')).toContainText('ayarları eksik');

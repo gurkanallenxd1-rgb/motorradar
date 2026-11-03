@@ -12,7 +12,7 @@ jobs:
           node-version: '22'
       - run: npm ci
       - run: npm test
-      - run: npx playwright install --with-deps webkit
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:safari
       - uses: actions/upload-artifact@v4
         if: failure()
