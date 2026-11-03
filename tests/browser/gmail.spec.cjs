@@ -10,7 +10,7 @@ test('iPhone: Gmail v2 preview and non-destructive import',async({page})=>{
   history:[{price:250000,at:'2026-09-01'}],createdAt:'2026-09-01',
   favorite:true,status:'sold',notes:'Özel ekspertiz notu'};
  await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),old);
- await page.reload();await page.locator('#showArchive').check();
+ await page.reload();await page.locator('#hideClosed').uncheck();
  const event=(url,price,at)=>({kind:'price_drop',url,listingId:url.match(/\d{9,}/)[0],
    oldPrice:price+1000,newPrice:price,price,observedAt:at,title:'Acil MT-25',
    brand:'Yamaha',model:'Yamaha MT-25',year:null,km:null});

@@ -8,12 +8,24 @@ async function addPhoto(page,file){await page.locator('#photoFile').setInputFile
 test('single and bulk archive, restore follow, no deletion or metadata loss',async({page})=>{
  page.on('dialog',d=>d.accept());await seed(page);
  await page.locator('[data-status]').selectOption('sold');await expect(page.locator('.listing')).toHaveCount(0);expect(await saved(page)).toEqual([{...row,status:'sold'}]);
- await page.locator('#showArchive').check();await expect(page.locator('#hideClosed')).not.toBeChecked();await expect(page.locator('.listing')).toHaveCount(1);
+ await page.locator('#hideClosed').uncheck();await expect(page.locator('#showArchive')).toBeChecked();await expect(page.locator('.listing')).toHaveCount(1);
  await page.locator('[data-follow]').click();expect(await saved(page)).toEqual([row]);
  await page.locator('#hideClosed').check();await expect(page.locator('#showArchive')).not.toBeChecked();
  await page.locator('#selectVisible').click();await page.locator('#bulkStatus').selectOption('removed');await page.locator('#applyBulk').click();await expect(page.locator('.listing')).toHaveCount(0);
  await page.locator('#statusFilter').selectOption('removed');await expect(page.locator('.listing')).toHaveCount(1);await expect(page.locator('#showArchive')).toBeChecked();
  await page.locator('#resetFilters').click();await expect(page.locator('.listing')).toHaveCount(0);await page.reload();expect(await saved(page)).toEqual([{...row,status:'removed'}]);
+});
+
+test('iPhone archive filter stays usable with 78 records and no duplicate visible switch',async({page})=>{
+ const xs=Array.from({length:78},(_,i)=>({...row,id:'long'+i,status:i%2?'removed':'following'}));
+ await page.goto('/');await page.evaluate(records=>localStorage.setItem('motorradar-v1',JSON.stringify(records)),xs);await page.reload();
+ await expect(page.locator('#hideClosed')).toBeVisible();await expect(page.locator('#showArchive')).toBeHidden();
+ await expect(page.locator('.listing')).toHaveCount(39);
+ await page.locator('#hideClosed').scrollIntoViewIfNeeded();await page.locator('#hideClosed').uncheck();
+ await expect(page.locator('.listing')).toHaveCount(78);
+ await page.locator('#hideClosed').check();await expect(page.locator('.listing')).toHaveCount(39);
+ const visible=await page.locator('#hideClosed').evaluate(el=>{const r=el.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight});
+ expect(visible).toBe(true);expect(await saved(page)).toEqual(xs);
 });
 
 test('local optimized photos: gallery, main, replace, download, delete, reload and backup boundaries',async({page})=>{
