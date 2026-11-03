@@ -16,8 +16,11 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/audit-costs.cjs
+      - run: node scripts/research-costs.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: cost-source-review-queue
-          path: work/cost-audit.json
+          path: |
+            work/cost-audit.json
+            work/cost-research.json
           retention-days: 30

@@ -4,8 +4,8 @@
  const COSTS='motorradar-costs-v37',STORE='motorradar-v1',RECOVERY='motorradar-pre-import-v371',PENDING='motorradar-import-pending-v371';
  const unsafe=k=>['__proto__','prototype','constructor'].includes(k);
  const numbers=new Set(['insuranceQuote','inspectionQuote','notaryService','registration','service','parts','other']);
- const bools=new Set(['authorizedBuyer','serviceApproved','partsApproved','otherApproved']);
- const choices={transaction:['used-sale','first-registration','other'],insuranceMode:['cap','quote'],vehicleClass:['motorcycle','cargo-motorcycle'],usageProfile:['private-other-no-disability','corporate-other-no-disability','private-electric-no-disability']};
+ const bools=new Set(['authorizedBuyer','serviceApproved','partsApproved','otherApproved','quoteApproved','registrationSource','notaryServiceSource']);
+ const choices={registrationRequired:['yes','no','unknown'],transaction:['used-sale','first-registration','other'],insuranceMode:['cap','quote'],vehicleClass:['motorcycle','cargo-motorcycle'],usageProfile:['private-other-no-disability','corporate-other-no-disability','private-electric-no-disability']};
  function scenarios(value){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>10000)throw Error('Geçersiz masraf senaryoları');
   const out=Object.create(null);
@@ -24,7 +24,7 @@
   }
   return out;
  }
- function snapshot(listings,storage){return {app:'MotorRadar',version:'3.7.1-beta',exportedAt:new Date().toISOString(),photosIncluded:false,listings,costScenarios:scenarios(JSON.parse(storage.getItem(COSTS)||'{}'))};}
+ function snapshot(listings,storage){return {app:'MotorRadar',version:'3.7.2-beta',exportedAt:new Date().toISOString(),photosIncluded:false,listings,costScenarios:scenarios(JSON.parse(storage.getItem(COSTS)||'{}'))};}
  function preview(d,existing,costs,valid,duplicate){
   if(d?.app!=='MotorRadar'||!Array.isArray(d.listings)||d.listings.length>10000||!d.listings.every(valid))throw Error('Geçersiz yedek');
   const ids=new Set();for(const x of d.listings){if(!x.id||unsafe(x.id)||ids.has(x.id))throw Error('Tekrarlanan ilan');ids.add(x.id);}
@@ -37,7 +37,7 @@
   const before={listings:storage.getItem(STORE),costs:storage.getItem(COSTS)};
   if(before.listings!==expected.listings||before.costs!==expected.costs)throw Error('Veriler başka sekmede değişti; önizlemeyi yeniden açın.');
   // A write failure here prevents any mutation. This copy also survives an interrupted tab.
-  storage.setItem(RECOVERY,JSON.stringify({app:'MotorRadar',version:'3.7.1-beta',photosIncluded:false,exportedAt:new Date().toISOString(),listings:JSON.parse(before.listings||'[]'),costScenarios:JSON.parse(before.costs||'{}')}));
+  storage.setItem(RECOVERY,JSON.stringify({app:'MotorRadar',version:'3.7.2-beta',photosIncluded:false,exportedAt:new Date().toISOString(),listings:JSON.parse(before.listings||'[]'),costScenarios:JSON.parse(before.costs||'{}')}));
   storage.setItem(PENDING,JSON.stringify(before));
   try{storage.setItem(COSTS,JSON.stringify(plan.costs));storage.setItem(STORE,JSON.stringify(plan.listings));storage.removeItem(PENDING);}
   catch(error){try{recover(storage)}catch{}throw Error('Kaydedilemedi. İçe aktarma öncesi ayrı yedeği kullanın.');}

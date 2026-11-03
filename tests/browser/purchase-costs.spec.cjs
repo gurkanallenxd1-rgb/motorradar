@@ -12,7 +12,7 @@ test('research never modifies listings/photos/budget; exact SBM step changes and
  await expect(page.locator('#researchResult')).toContainText('5.000');await expect(page.locator('#researchResult')).toContainText('teklif değildir');
  await page.locator('#research-step').selectOption('8');await expect(page.locator('#researchResult')).toContainText('2.000');
  await page.locator('#research-providerId').selectOption('yamanlar-alibeykoy');await expect(page.locator('#researchResult')).toContainText('4.500');await expect(page.locator('#researchResult')).toContainText('Erişim hatası');
- await fits(page);await page.locator('#research-insuranceMode').selectOption('quote');await page.locator('#research-insuranceQuote').fill('3000');await page.locator('#research-insuranceQuote').press('Tab');await page.locator('[data-research="quoteDate"]').fill(at);await page.locator('[data-research="quoteDate"]').press('Tab');
+ await fits(page);await page.locator('#research-insuranceMode').selectOption('quote');await page.locator('[data-research="quoteApproved"]').check();await page.locator('#research-insuranceQuote').fill('3000');await page.locator('#research-insuranceQuote').press('Tab');await page.locator('[data-research="quoteDate"]').fill(at);await page.locator('[data-research="quoteDate"]').press('Tab');
  for(const [key,value] of [['notaryService','500'],['registration','1511'],['service','2000'],['parts','0'],['other','0']]){await page.locator('#research-'+key).fill(value);await page.locator('#research-'+key).press('Tab')}
  for(const key of ['service','parts','other'])await page.locator(`[data-research="${key}Approved"]`).check();
  await expect(page.locator('#researchResult')).toContainText('Tahmini senaryo toplamı');await expect(page.locator('#researchResult')).toContainText('252.511');await expect(page.locator('#researchResult')).not.toContainText('Kesinleşen toplam');
@@ -27,4 +27,22 @@ test('inaccessible sources and expired duty do not produce a complete total or r
 });
 test('static source request failure leaves unknowns explicit and storage untouched',async({page})=>{
  await page.route('**/data/cost-sources.json',route=>route.abort());await page.goto('/');await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),rec('a'));await page.reload();const before=await page.evaluate(()=>JSON.stringify(localStorage));await page.locator('[data-research-open="a"]').click();await expect(page.locator('#researchDialog')).toContainText('Kaynak verisi alınamadı');await expect(page.locator('#researchResult')).toContainText('Tam bütçe hesaplanamadı');expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(before);
+});
+test('one tap research preserves manual inputs, explicit source choice and failed refresh',async({page})=>{
+ await seed(page);await page.locator('[data-research-open="a"]').first().click();
+ await page.locator('[data-research="transaction"]').selectOption('other');await expect(page.locator('[data-research="registrationRequired"]')).toHaveValue('unknown');await page.locator('[data-research="transaction"]').selectOption('used-sale');await expect(page.locator('[data-research="registrationRequired"]')).toHaveValue('yes');
+ await page.locator('#research-registration').fill('2000');await page.locator('#research-registration').press('Tab');
+ const before=await page.evaluate(()=>JSON.stringify(localStorage));
+ await page.locator('#autoResearch').click();await expect(page.locator('#autoResearchStatus')).toContainText('Daha önce kaydedilmiş fiyat kullanıldı');
+ expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(before);
+ await expect(page.locator('#research-registration')).toHaveValue('2000');
+ await page.locator('[data-use-source="registration"]').click();
+ await expect(page.locator('#researchResult [data-cost-status]').filter({hasText:'Ruhsat / tescil belgesi'})).toContainText('1.511');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-costs-v37')).a.registration)).toBe(2000);
+ await page.locator('[data-research="registrationRequired"]').selectOption('no');
+ await expect(page.locator('#researchResult')).toContainText('Belge düzenlenmiyor');
+ await page.locator('#providerLocation').selectOption({label:'Ataşehir / İstanbul'});await expect(page.locator('#providerCards .cost-card')).toHaveCount(1);await expect(page.locator('#providerCards')).toContainText('6.000');
+ await page.locator('#providerCards [data-package]').click();await page.locator('#providerSort').selectOption('price');await fits(page);
+ const saved=await page.evaluate(()=>JSON.stringify(localStorage));
+ await page.route('**/data/cost-sources.json',route=>route.abort());await page.locator('#autoResearch').click();await expect(page.locator('#autoResearchStatus')).toContainText('güncellemesi başarısız');expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(saved);
 });

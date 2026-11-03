@@ -1,3 +1,7 @@
+# MotorRadar 3.7.2 Beta
+
+Tek tuşla kaynak dosyası araştırması, manuel tutarı koruyan öneriler, belge kapsamı, paket filtreleri ve güvenli Actions incelemesi. [Kullanım, kaynak sınırları ve örnekler](docs/3-7-2-otomatik-masraf.md).
+
 # MotorRadar 3.7.1 Beta
 
 Resmî ruhsat bedeli, tarihli ekspertiz paketleri, güvenli masraf senaryosu yedekleme ve kaynak inceleme kuyruğu. [Kaynaklar, sınırlar ve kullanım](docs/3-7-1-masraf-tamamlama.md).
