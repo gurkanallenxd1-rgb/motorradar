@@ -1,4 +1,4 @@
-# MotorRadar 3.7.4 Beta
+# MotorRadar 3.8 Beta
 
 Kaynak göstergeleri, manuel/kaynaklı tutar karşılaştırması ve firmaya bağlı gerçek teklifler. [Davranış ve veri koruma notları](docs/3-7-3-akilli-masraf.md). Gerçek iPhone üzerinde henüz test edilmedi.
 
@@ -157,3 +157,8 @@ Her karttaki **İlanı analiz et** düğmesi yalnızca kayıtlı ilanları kulla
 - **Kontrol ettim** son manuel kontrol tarihini kaydeder. Yalnızca takip edilen ilanlarda son kontrolden 7 gün sonra kart içinde kontrol uyarısı görünür. Hiç kontrol edilmemiş ilanlarda süre kayıt tarihinden başlar; geçersiz/bilinmeyen tarihler için süre varsayılmaz. Otomatik tarama veya bildirim yoktur.
 - **Hızlı fiyat güncelle** yalnızca fiyatı ve mevcut biçimdeki fiyat geçmişini günceller. Aynı fiyat tekrar geçmişe eklenmez; fiyat güncellemek kontrol tarihini değiştirmez.
 - Eski kayıtlarda durum `following` (Takip ediliyor), `lastCheckedAt` ise `null` olur. `motorradar-v1` anahtarı, eski JSON yedekleri, özel alanlar ve fiyat geçmişi korunur. Yeni yedekler eklenen alanları da saklar.
+
+
+## 3.8 Beta
+
+Satın Alma Karar Merkezi: görünür satın alma kontrolleri, eksik gider listesi, eksik tutar / açık sıfır ayrımı ve eksik maliyetlerde de bütçe aşımı uyarısı. Ayrıntılar: [3.8 karar merkezi](docs/3-8-karar-merkezi.md).
