@@ -1,7 +1,7 @@
 /* Research data never writes listing, photo, Drive or backup storage. */
 (function(root){
  'use strict';
- const C=root.MotorPurchaseCosts,KEY='motorradar-costs-v37';let data=null,loadError='',preferences=Object.create(null),onChange=()=>{},active=null;
+ const C=root.MotorPurchaseCosts,KEY='motorradar-costs-v37';let data=null,ready=false,loadError='',preferences=Object.create(null),onChange=()=>{},active=null;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const money=n=>C.amount(n)?new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:2}).format(n):'Bilinmiyor';
  try{const raw=JSON.parse(localStorage.getItem(KEY));if(raw&&typeof raw==='object'&&!Array.isArray(raw))preferences=Object.assign(Object.create(null),raw)}catch{}
@@ -12,7 +12,7 @@
  function lines(x,budget){const c=calculate(x,budget);return `<dl class="decision-lines">${c.lines.map(l=>`<div><dt>${esc(l.label)} · ${l.status==='confirmed'?'Kesinleşen':l.status==='estimated'?'Tahmini':'Bilinmeyen'}</dt><dd>${money(l.amount)}</dd></div>`).join('')}</dl><p>Girilmedi veya doğrulanamadı: sıfır kabul edilmez. Tarife ve paket yayını gerçek teklif değildir.</p>`}
  function difference(x,base,budget){const a=calculate(x,budget),b=calculate(base,budget);const diff=(v)=>(v>0?'+':v<0?'−':'')+money(Math.abs(v));return a.total!==null&&b.total!==null?diff(a.total-b.total):'Tam fark bilinmiyor · bilinen ek gider farkı: '+diff(a.extras-b.extras)}
  function open(x,budget){active={x,budget};const p=prefs(x),sel=(a,b)=>String(a)===String(b)?'selected':'',number=(key,label)=>`<label>${label} (TL)<input class="input" data-research="${key}" id="research-${key}" type="number" min="0" max="1000000000" step="0.01" value="${C.amount(p[key])?p[key]:''}"></label>`;
-  const dialog=document.getElementById('researchDialog');
+  const dialog=document.getElementById('researchDialog');if(!ready){dialog.querySelector('.dialog-content').innerHTML='<p role="status">Kaynak verileri yükleniyor…</p>';if(!dialog.open)dialog.showModal();return;}
   dialog.querySelector('.dialog-content').innerHTML=`<h3>${esc(x.title||x.model)}</h3><p>Masraf araştırması · MotorRadar 3.7 Beta</p><p>${esc(loadError||'Yalnız yayımlanmış kaynak verileri kullanılır. Bilinmeyen tutarlar tahmin edilmez.')}</p><div class="fields">
   <label>İşlem türü<select class="input" data-research="transaction"><option value="used-sale" ${sel(p.transaction||'used-sale','used-sale')}>Tescilli araç satış / devir</option><option value="first-registration" ${sel(p.transaction,'first-registration')}>İlk tescil</option><option value="other" ${sel(p.transaction,'other')}>Diğer / istisna incelemesi gerekli</option></select></label>
   <label class="checkrow"><input type="checkbox" data-research="authorizedBuyer" ${p.authorizedBuyer?'checked':''}> Alıcı ikinci el taşıt ticareti yetki belgeli (yalnız tescilli araç devrinde)</label>
@@ -32,7 +32,7 @@
  }
  function update(){if(!active)return;const {x,budget}=active,c=calculate(x,budget);document.getElementById('researchResult').innerHTML=summary(x,budget)+c.lines.map(l=>`<p><b>${esc(l.label)}: ${money(l.amount)}</b> · ${l.status==='confirmed'?'Kesinleşen':l.status==='estimated'?'Tahmini':'Bilinmeyen'}<br>${esc(l.note)}<br>${meta(l.source)}</p>`).join('')}
  async function mount(callback){onChange=callback;const d=document.createElement('dialog');d.id='researchDialog';d.innerHTML='<div class="dialog-head"><h2>Satın alma bütçesi</h2><button class="close" aria-label="Kapat">×</button></div><div class="dialog-content"></div>';d.querySelector('button').onclick=()=>d.close();document.body.append(d);
-  try{const response=await fetch('./data/cost-sources.json',{cache:'no-cache'});if(!response.ok)throw Error('Kaynak dosyası alınamadı');data=C.validate(await response.json())}catch{loadError='Kaynak verisi alınamadı; doğrulanamayan tutarlar bilinmiyor olarak gösterilir.'}onChange();
+  try{const response=await fetch('./data/cost-sources.json',{cache:'no-cache',signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error('Kaynak dosyası alınamadı');data=C.validate(await response.json());if(response.headers.get('X-MotorRadar-Source-Cache')==='stale')loadError='Kaynak erişim hatası: son kaydedilmiş kaynak verisi gösteriliyor. Doğrulama tarihlerini kontrol edin.'}catch{loadError='Kaynak verisi alınamadı; doğrulanamayan tutarlar bilinmiyor olarak gösterilir.'}ready=true;if(active&&d.open){const a=active;d.close();open(a.x,a.budget)}onChange();
  }
  root.MotorCostResearch={mount,open,calculate,summary,lines,difference};
 })(globalThis);
