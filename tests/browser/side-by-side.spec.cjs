@@ -30,6 +30,6 @@ test('ties and unverified prices remain explicit in selected cards',async({page}
  await seed(page,[rec('a'),rec('b'),rec('unknown',{price:100000,priceVerifiedAt:null})]);
  await expect(page.locator('#smartSelector .decision-callout')).toContainText('Tek bir kazanan seçilmedi');await expect(page.locator('#smartSelector .decision-advantage')).toHaveText(['Eşit puan','Eşit puan']);
  for(const id of ['a','b','unknown'])await page.locator(`[data-choose="${id}"]`).check();await page.locator('#compareBtn').click();
- const card=page.locator('#compareContent .decision-card').last();await expect(card.locator('.decision-facts')).toContainText('Doğrulanmadı');await expect(card.locator('.decision-budget')).toContainText('Hesaplanamadı');await expect(card.locator('.decision-advantage')).toHaveCount(0);
+ const card=page.locator('#compareContent .decision-card').last();await expect(card.locator('.decision-facts')).toContainText('Doğrulanmadı');await expect(card.locator('.decision-budget')).toContainText('Tam bütçe hesaplanamadı');await expect(card.locator('.decision-advantage')).toHaveCount(0);
  await expect(page.locator('#compareContent .decision-callout')).toContainText('Tek bir kazanan seçilmedi');
 });

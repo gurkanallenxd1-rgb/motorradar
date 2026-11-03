@@ -8,9 +8,9 @@ test('compact cards preserve true ties, distinguish total overrun and disclose u
  await expect(page.locator('.decision-callout')).toContainText('Tek bir kazanan seçilmedi');
  await expect(page.locator('.decision-score strong')).toHaveText(['50.0','50.0']);
  const a=page.locator('.decision-card').first();
- await expect(a.locator('.decision-budget')).toContainText('Bütçe aşıldı');
- await expect(a.locator('.decision-budget')).toContainText('255.000');
- await expect(a.locator('.decision-budget')).toContainText('5.000');
+ await expect(a.locator('.decision-budget')).toContainText('Eksik kalemli ara toplam');
+ await expect(a.locator('.decision-budget')).toContainText('240.000');
+ await expect(a.locator('.decision-budget')).toContainText('Tam bütçe hesaplanamadı');
  await expect(a.locator('.decision-budget')).not.toContainText('bütçeye uygun');
  await expect(a.locator('.decision-detail-body')).toBeHidden();await a.locator('summary').click();
  await expect(a.locator('.decision-detail-body')).toContainText('25.0 / 50');
@@ -41,7 +41,7 @@ test('40 candidates paginate, accordions support keyboard and narrow Safari layo
  const before=await page.evaluate(()=>localStorage.getItem('motorradar-v1'));
  await page.locator('#selectorBudget').fill('230000');await page.locator('#selectorBudget').press('Tab');
  await expect(page.locator('.decision-card').first().locator('details')).toHaveAttribute('open','');
- await expect(page.locator('.decision-card').first().locator('.decision-budget')).toContainText('Bütçe aşıldı');
+ await expect(page.locator('.decision-card').first().locator('.decision-budget')).toContainText('Tam bütçe hesaplanamadı');
  expect(await page.evaluate(()=>localStorage.getItem('motorradar-v1'))).toBe(before);
 });
 test('panel contrast, accessible controls and photo bytes survive read-only decisions',async({page})=>{
