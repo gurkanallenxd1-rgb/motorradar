@@ -43,7 +43,8 @@ test('iPhone: Gmail cleanup, status/source filters and email timeline preserve u
  expect(saved[0].favorite).toBe(true);
  expect(saved[0].notes).toBe('Benim notum');
  expect(saved[0].gmailEvents).toHaveLength(2);
- expect(saved[1]).toEqual(manual);
+ expect(saved[1]).toMatchObject(manual);
+ expect(saved[1].lastCheckedAt).toBe(null);
  await page.locator('#resetFilters').click();
  await expect(page.locator('.listing')).toHaveCount(2);
  for(const width of [320,375,390]){
