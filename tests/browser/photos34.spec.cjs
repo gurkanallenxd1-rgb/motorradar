@@ -8,7 +8,7 @@ async function addPhoto(page,file){await page.locator('#photoFile').setInputFile
 test('single and bulk archive, restore follow, no deletion or metadata loss',async({page})=>{
  page.on('dialog',d=>d.accept());await seed(page);
  await page.locator('[data-status]').selectOption('sold');await expect(page.locator('.listing')).toHaveCount(0);expect(await saved(page)).toEqual([{...row,status:'sold'}]);
- await page.locator('#showArchive').check();await expect(page.locator('#hideClosed')).not.toBeChecked();await expect(page.locator('.listing')).toHaveCount(1);
+ await page.locator('#hideClosed').uncheck();await expect(page.locator('#showArchive')).toBeChecked();await expect(page.locator('.listing')).toHaveCount(1);
  await page.locator('[data-follow]').click();expect(await saved(page)).toEqual([row]);
  await page.locator('#hideClosed').check();await expect(page.locator('#showArchive')).not.toBeChecked();
  await page.locator('#selectVisible').click();await page.locator('#bulkStatus').selectOption('removed');await page.locator('#applyBulk').click();await expect(page.locator('.listing')).toHaveCount(0);
