@@ -1,6 +1,6 @@
 {
   "name": "motorradar",
-  "version": "3.6.0-beta",
+  "version": "3.6.1-beta",
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.cjs",

@@ -2,12 +2,12 @@ const {test,expect}=require('@playwright/test');
 const rec=(id,patch={})=>({id,title:'Motor '+id,model:'Yamaha MT-25',price:240000,verifiedPrice:240000,priceVerifiedAt:'2026-01-01',year:2024,km:10000,status:'following',favorite:false,lastCheckedAt:null,history:[{price:240000,at:'2026-01-01'}],createdAt:'2026-01-01',url:'',custom:'koru',...patch});
 async function seed(page){await page.goto('/');await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),[rec('a'),rec('b'),rec('legacy',{priceVerifiedAt:null,year:null})]);await page.reload()}
 test('weights warn, persist and update comparison; ties and legacy stay explicit',async({page})=>{
- await seed(page);await expect(page.locator('#smartSelector')).toContainText('Eşit puan');
+ await seed(page);await expect(page.locator('#smartSelector')).toContainText('Eşit puan');await page.locator('[data-panel-key="scoring"] > summary').click();
  await page.locator('#weight-price').fill('70');await expect(page.locator('#weightWarning')).toContainText('Geçersiz toplam');await expect(page.locator('#smartSelector')).toContainText('Puanlı aday yok');
  await page.locator('#weight-km').fill('10');await expect(page.locator('#weightWarning')).toHaveText('Toplam %100');
  await page.reload();await expect(page.locator('#weight-price')).toHaveValue('70');
  await page.locator('[data-choose="a"]').check();await page.locator('[data-choose="b"]').check();await page.locator('#compareBtn').click();await expect(page.locator('#compareContent')).toContainText('Fiyat 35.0 + km 5.0 + yıl 10.0');await page.locator('[data-close="compareDialog"]').click();
- await page.locator('#decisionPanel > summary').click();await expect(page.locator('#selectorBudget')).toBeHidden();await page.locator('#decisionPanel > summary').click();
+ await page.locator('#decisionPanel > summary').click();await expect(page.locator('#decisionPanel')).not.toHaveAttribute('open','');await expect(page.locator('#selectorBudget')).toBeHidden();await page.locator('#decisionPanel > summary').click();await expect(page.locator('#selectorBudget')).toBeVisible();
 });
 test('per-listing costs calculate live, inspection persists, old data and verification untouched at iPhone widths',async({page})=>{
  await seed(page);const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));
