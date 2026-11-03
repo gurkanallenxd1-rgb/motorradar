@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-apple.png">
-  <title>MotorRadar 3.1 · Motosiklet ilan takip</title>
+  <title>MotorRadar 3.2 · Motosiklet ilan takip</title>
   <style>
     :root{color-scheme:dark;--bg:#080c15;--panel:#131b2b;--panel2:#192335;--edge:#283448;--text:#eef3ff;--muted:#9eabc1;--accent:#76e2ba;--cyan:#90baf7;--red:#ff8c93;--yellow:#ffe098;--radius:20px}
     *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101b31 0,#080c15 290px);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);min-height:100vh;min-height:100svh}button,input,select,textarea{font:inherit}input,select,textarea{font-size:16px}button{cursor:pointer}a{color:var(--cyan)}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
@@ -78,6 +78,15 @@
     </div>
     <section class="cards" id="cards" aria-live="polite"></section>
     <div class="notice"><strong>Veri notu:</strong> Bu uygulama ilan sitelerini otomatik taramaz. Gmail’den aktarılan fiyatlar eski bildirim değerleri olabilir; aktiflik, kilometre ve yıl doğrulanmadıkça bilinmiyor kalır. Güncel fiyat ve manuel fiyat geçmişi ayrı tutulur. Veriler bu tarayıcının yerel alanında saklanır.</div>
+  <section class="notice" aria-labelledby="driveTitle">
+    <h2 id="driveTitle">Güvenli Google Drive eşitleme</h2>
+    <p>Yalnızca seçtiğin MotorRadar-Gmail-Guvenli-v2.json okunur. Bildirimler önizleme ve onay sonrası eklenir.</p>
+    <div class="controls"><button class="btn" id="driveConnect" type="button">Bağlantı kur</button><button class="btn" id="drivePick" type="button" disabled>Drive dosyası seç</button><button class="btn primary" id="driveSync" type="button" disabled>Şimdi eşitle</button><button class="btn" id="driveDisconnect" type="button" disabled>Bağlantıyı kes</button></div>
+    <p id="driveStatus" role="status" aria-live="polite">Bağlantı kurulmadı. İlk dokunuş Google bileşenlerini hazırlar; ardından tekrar dokunarak izin ver.</p>
+    <p>Son eşitleme (onaylanıp kaydedilen): <span id="driveLastSync">Henüz eşitlenmedi</span></p>
+    <label class="checkrow"><input id="drivePeriodic" type="checkbox"> Site görünürken 5 dakikada bir kontrol et (isteğe bağlı)</label>
+    <p class="details">İzin süresi dolunca tekrar bağlantı gerekir. Safari kapalıyken çalışmaz. Manuel Gmail JSON aktarımı kullanılabilir. <a href="docs/3-2-google-drive.md">Google Cloud kurulumu</a></p>
+  </section>
   </main>
   <div class="footer-bar"><div class="footer-inner"><small><strong id="selectedCount">0</strong> ilan seçildi (en fazla 3)</small><button class="btn primary small" id="compareBtn" disabled>Karşılaştır</button></div></div>
 
@@ -112,6 +121,8 @@
   <input id="importFile" type="file" accept="application/json,.json" hidden>
   <script src="listing-url.js"></script>
   <script src="gmail-import.js"></script>
+  <script src="drive-config.js"></script>
+  <script src="drive-sync.js"></script>
   <script src="listing-quality.js"></script>
   <script src="analysis.js"></script>
   <script src="ocr-parser.js"></script>
@@ -218,28 +229,41 @@
     $('cards').addEventListener('change',e=>{const statusId=e.target.dataset.status;if(statusId&&Object.hasOwn(statuses,e.target.value)){updateListing(statusId,{status:e.target.value});return}const id=e.target.dataset.choose;if(!id)return;if(e.target.checked){if(selected.size>=3){e.target.checked=false;alert('Aynı anda en fazla 3 ilan karşılaştırılabilir.');return}selected.add(id)}else selected.delete(id);$('selectedCount').textContent=selected.size;$('compareBtn').disabled=selected.size<2});
     document.querySelectorAll('[data-close]').forEach(b=>b.onclick=() => $(b.dataset.close).close());
     let gmailPreviewData=null;
-    $('gmailImportBtn').onclick=()=>{gmailPreviewData=null;$('gmailApply').disabled=true;$('gmailPreview').textContent='Önce Drive\'daki MotorRadar-Gmail-Guvenli-v2.json dosyasını seç.';showDialog('gmailDialog')};
-    $('gmailChoose').onclick=()=>$('gmailFile').click();
-    $('gmailFile').onchange=async e=>{
-      const file=e.target.files?.[0];if(!file)return;
-      gmailPreviewData=null;$('gmailApply').disabled=true;
-      try{
-        if(file.size>5*1024*1024)throw Error('Dosya 5 MB sınırını aşıyor.');
-        const imported=MotorGmailImport.read(await file.text());
+    let drivePreview=false;
+    function clearGmailPreview(){gmailPreviewData=null;drivePreview=false;$('gmailApply').disabled=true}
+    function showGmailPreview(imported){
         const planned=MotorGmailImport.preview(items,imported);
         gmailPreviewData=planned;
         $('gmailPreview').innerHTML=`<p><strong>${imported.events.length}</strong> geçerli bildirim · <strong>${planned.newCount}</strong> yeni ilan · <strong>${planned.updateCount}</strong> mevcut ilana bildirim eklenecek · <strong>${planned.ignored}</strong> geçersiz kayıt atlandı.</p><p>Mevcut güncel fiyatlar, fiyat geçmişleri ve ilan durumları değişmeyecek.</p><ul>${planned.entries.slice(0,10).map(g=>`<li>${escape(g.events.at(-1).title||g.events.at(-1).url)} — ${g.existing?'Mevcut ilan':'Yeni kayıt'} (${g.events.length} bildirim)</li>`).join('')}</ul>${planned.entries.length>10?'<p>Diğer kayıtlar önizlemede kısaltıldı.</p>':''}`;
         $('gmailApply').disabled=planned.entries.length===0;
+    }
+    const drive=window.MotorDriveSync?.mount({config:window.MotorDriveConfig||{},
+      onClear:()=>{if(drivePreview)clearGmailPreview()},
+      onPreview:imported=>{showGmailPreview(imported);drivePreview=true;if(!$('gmailDialog').open)showDialog('gmailDialog')}
+    });
+    $('gmailDialog').addEventListener('close',()=>{clearGmailPreview();drive?.discard()});
+
+    $('gmailImportBtn').onclick=()=>{drive?.cancel();gmailPreviewData=null;$('gmailApply').disabled=true;$('gmailPreview').textContent='Önce Drive\'daki MotorRadar-Gmail-Guvenli-v2.json dosyasını seç.';showDialog('gmailDialog')};
+    $('gmailChoose').onclick=()=>$('gmailFile').click();
+    $('gmailFile').onchange=async e=>{
+      const file=e.target.files?.[0];if(!file)return;
+      drive?.cancel();gmailPreviewData=null;$('gmailApply').disabled=true;
+      try{
+        if(file.size>5*1024*1024)throw Error('Dosya 5 MB sınırını aşıyor.');
+        const imported=MotorGmailImport.read(await file.text());
+        showGmailPreview(imported);
       }catch(err){$('gmailPreview').textContent=err.message||'Gmail aktarım dosyası okunamadı.';}
       finally{e.target.value=''}
     };
     $('gmailApply').onclick=()=>{
       if(!gmailPreviewData)return;
       if(!confirm('Gmail bildirimleri aktarılsın mı? Mevcut fiyatlar ve geçmişleri korunacak.'))return;
-      const result=MotorGmailImport.apply(items,gmailPreviewData);
+      const fresh=MotorGmailImport.preview(items,{events:gmailPreviewData.entries.flatMap(g=>g.events),ignored:0});
+      const result=MotorGmailImport.apply(items,fresh);
       if(!result.items.every(validListing)){alert('Aktarım dosyasında geçersiz ilan bulundu.');return;}
       const previous=items;items=result.items.map(withFavorite);
       if(!persist()){items=previous;return;}
+      if(drivePreview)drive?.applied();
       $('gmailDialog').close();gmailPreviewData=null;selected.clear();render();
       alert(result.added+' yeni ilan ve '+result.updated+' kayıt için Gmail bildirimi kaydedildi.');
     };
