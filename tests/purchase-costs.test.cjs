@@ -29,3 +29,8 @@ test('evidence importer refuses forged documents and leaves validated prices unt
  const {review}=require('../scripts/import-costs.cjs'),crypto=require('node:crypto'),evidence=Buffer.from('fixture evidence, not production tariff');const before=JSON.stringify(data),candidate={data:clone(),audit:{reviewedAt:at,evidence:[{sourceUrl:data.notary.sourceUrl,sha256:crypto.createHash('sha256').update(evidence).digest('hex')}]}};
  assert.equal(review(candidate,[evidence],at).data.notary.minimum,1000);assert.throws(()=>review(candidate,[Buffer.from('tampered')],at));candidate.data.insurance.rows=[{province:34,step:4,amount:1234}];assert.throws(()=>review(candidate,[evidence],at));assert.equal(JSON.stringify(data),before);
 });
+
+test('decimal expenses use cents and exact budget boundary never reports a zero-value overrun',()=>{
+ const p={notaryService:.1,registration:.2,insuranceMode:'quote',insuranceQuote:.3,quoteDate:at,providerId:'custom',inspectionQuote:.4,service:.5,serviceApproved:true,parts:.6,partsApproved:true,other:.7,otherApproved:true};
+ const c=C.calculate(record(),p,data,241002.8,at);assert.equal(c.total,241002.8);assert.equal(c.remaining,0);assert.equal(C.calculate(record(),p,data,241002.79,at).remaining,-.01);
+});

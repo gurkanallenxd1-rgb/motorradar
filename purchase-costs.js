@@ -40,9 +40,9 @@
    const approved=p[key+'Approved']===true;
    add(key,label,approved?p[key]:null,'estimated',null,approved?'Kullanıcı onaylı bütçe gideri':'Kullanıcı onayı gerekli; gerek yoksa 0 girip onaylayın');
   }
-  const unknown=lines.filter(l=>l.amount===null),known=lines.filter(l=>l.amount!==null),subtotal=known.reduce((s,l)=>s+l.amount,0),extras=known.filter(l=>l.key!=='sale').reduce((s,l)=>s+l.amount,0);
+  const unknown=lines.filter(l=>l.amount===null),known=lines.filter(l=>l.amount!==null),subtotal=known.reduce((s,l)=>s+Math.round(l.amount*100),0)/100,extras=known.filter(l=>l.key!=='sale').reduce((s,l)=>s+Math.round(l.amount*100),0)/100;
   const estimated=known.some(l=>l.status==='estimated'),total=unknown.length?null:subtotal;
-  return {lines,unknown,subtotal,extras,total,remaining:total===null?null:budget-total,estimated,label:unknown.length?'Eksik kalemli ara toplam':estimated?'Tahmini senaryo toplamı':'Kesinleşen toplam',insurance};
+  return {lines,unknown,subtotal,extras,total,remaining:total===null?null:(Math.round(budget*100)-Math.round(total*100))/100,estimated,label:unknown.length?'Eksik kalemli ara toplam':estimated?'Tahmini senaryo toplamı':'Kesinleşen toplam',insurance};
  }
  const api={amount,date,today,safeUrl,current,validate,notary,cap,calculate};if(typeof module!=='undefined')module.exports=api;else root.MotorPurchaseCosts=api;
 })(globalThis);
