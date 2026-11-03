@@ -19,6 +19,6 @@ test('legacy quotes transfer as unapproved drafts; IDs and missing motor price s
  const c=C.calculate({...x,priceVerifiedAt:null},p,data,290000,at);assert.equal(c.motorMissing,true);assert.equal(c.total,null);assert.equal(c.partialRemaining,null);
 });
 test('81 records, legacy decisions and scenario approvals round trip backup without mutation',()=>{
- const xs=Array.from({length:81},(_,i)=>({...x,id:'record-'+i})),scenarios={'record-0':p,'record-1':{service:0,serviceApproved:false}},before=JSON.stringify(xs),raw=JSON.stringify(scenarios),backup=B.snapshot(xs,{getItem:()=>raw});
+ const xs=Array.from({length:81},(_,i)=>({...x,id:'record-'+i})),scenarios={'record-0':p,'record-1':{service:0,serviceApproved:false}},before=JSON.stringify(xs),raw=JSON.stringify(scenarios),backup=B.snapshot(xs,{getItem:k=>k===B.COSTS?raw:null});
  const restored=B.preview(JSON.parse(JSON.stringify(backup)),xs,scenarios,()=>true,()=>false);assert.equal(restored.listings.length,81);assert.equal(JSON.stringify(restored.listings),before);assert.deepEqual(JSON.parse(JSON.stringify(restored.costs)),scenarios);assert.equal(backup.photosIncluded,false);assert.equal(JSON.stringify(xs),before);
 });
