@@ -25,8 +25,8 @@ işlemleri kendi onay düğmeleriyle anında saklanır.
 
 Resimler cihazda canvas ile en fazla 1280 piksel JPEG'e küçültülür, kartlar için
 400 piksel küçük resim üretilir. Canvas yeniden kodlaması EXIF metadatasını taşımaz.
-Veri `motorradar-photos` IndexedDB veritabanında ilan ID'sine bağlı Blob olarak
-saklanır; localStorage'a resim/base64 yazılmaz. Object URL'ler görünüm yenilenince
+Veri `motorradar-photos` IndexedDB veritabanında ilan ID'sine bağlı JPEG ikili verisi olarak
+saklanır (WebKit uyumu için diskte ArrayBuffer, görüntülerken Blob); localStorage'a resim/base64 yazılmaz. Object URL'ler görünüm yenilenince
 serbest bırakılır; kart resimleri lazy yüklenir. Depolama hatası ilan JSON'unu
 silmez veya değiştirmez. Tarayıcı depolaması kalıcı yedek değildir; iOS alan baskısı,
 site verilerini silme veya özel gezinme fotoğraf kaybına yol açabilir.

@@ -37,5 +37,16 @@
    const blob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',quality));c.width=c.height=1;if(!blob||blob.size>2*1024*1024)throw Error('Fotoğraf küçültülemedi.');return blob}
   return {image:await encode(1280,.8),thumb:await encode(400,.72)};
  }
- root.MotorPhotoStore={get:id=>transaction(id),set:(id,photos)=>{if(!id||!Array.isArray(photos)||photos.length>4||photos.some(p=>!(p.image instanceof Blob)||!(p.thumb instanceof Blob)))return Promise.reject(Error('Geçersiz fotoğraf.'));return transaction(id,photos)},optimize,decode};
+ root.MotorPhotoStore={
+  get:async id=>(await transaction(id)).map(p=>({
+   image:p.image instanceof Blob?p.image:new Blob([p.image],{type:'image/jpeg'}),
+   thumb:p.thumb instanceof Blob?p.thumb:new Blob([p.thumb],{type:'image/jpeg'})
+  })),
+  set:async(id,photos)=>{
+   if(!id||!Array.isArray(photos)||photos.length>4||photos.some(p=>!(p.image instanceof Blob)||!(p.thumb instanceof Blob)))throw Error('Geçersiz fotoğraf.');
+   // Binary buffers avoid WebKit's IndexedDB Blob preparation failures.
+   const encoded=await Promise.all(photos.map(async p=>({image:await p.image.arrayBuffer(),thumb:await p.thumb.arrayBuffer()})));
+   return transaction(id,encoded);
+  },optimize,decode
+ };
 })(window);
