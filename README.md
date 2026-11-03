@@ -1,3 +1,7 @@
+## MotorRadar 3.6 Beta — Akıllı Karar Sistemi
+
+Kişisel ağırlıklar, ilan bazında toplam alım maliyeti ve kullanıcı beyanına dayalı ekspertiz listesi. [Kullanım ve veri uyumluluğu](docs/3-6-akilli-karar.md).
+
 ## MotorRadar 3.5 Beta – Akıllı Motor Seçici
 
 Doğrulanmış fiyatla bütçe paneli, açıklanabilir ilk 5 sıralaması ve tarihli Gmail düşüşleri. [Kullanım, puanlama ve veri uyumluluğu](docs/3-5-akilli-secici.md).
