@@ -30,6 +30,7 @@ test('static source request failure leaves unknowns explicit and storage untouch
 });
 test('one tap research preserves manual inputs, explicit source choice and failed refresh',async({page})=>{
  await seed(page);await page.locator('[data-research-open="a"]').first().click();
+ await page.locator('[data-research="transaction"]').selectOption('other');await expect(page.locator('[data-research="registrationRequired"]')).toHaveValue('unknown');await page.locator('[data-research="transaction"]').selectOption('used-sale');await expect(page.locator('[data-research="registrationRequired"]')).toHaveValue('yes');
  await page.locator('#research-registration').fill('2000');await page.locator('#research-registration').press('Tab');
  const before=await page.evaluate(()=>JSON.stringify(localStorage));
  await page.locator('#autoResearch').click();await expect(page.locator('#autoResearchStatus')).toContainText('Daha önce kaydedilmiş fiyat kullanıldı');
