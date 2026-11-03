@@ -80,7 +80,7 @@ test('iPhone WebKit: short links, unknown details, verified IDs and backup resto
  // The v1 format remains valid and retains extra fields and history.
  const old={id:'legacy',title:'Eski',model:'Yamaha',price:240000,km:1000,year:2023,url:'',notes:'Eski not',createdAt:'2026-01-01',history:[{price:250000,at:'2026-01-01'},{price:240000,at:'2026-01-02'}],extra:'preserved'};
  await page.locator('#importFile').setInputFiles({name:'v1.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({app:'MotorRadar',version:1,listings:[old]}))});
- await expect.poll(data).toEqual([{...old,favorite:false}]);
+ await expect.poll(data).toEqual([{...old,favorite:false,status:'following',lastCheckedAt:null}]);
  for(const width of [320,375,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
  expect(outside).toEqual([]);expect(errors).toEqual([]);
 });
