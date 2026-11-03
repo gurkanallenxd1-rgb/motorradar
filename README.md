@@ -1,3 +1,7 @@
+## MotorRadar 3.5 Beta – Akıllı Motor Seçici
+
+Doğrulanmış fiyatla bütçe paneli, açıklanabilir ilk 5 sıralaması ve tarihli Gmail düşüşleri. [Kullanım, puanlama ve veri uyumluluğu](docs/3-5-akilli-secici.md).
+
 # MotorRadar 3.3 Beta — iPhone için motosiklet ilan takip PWA'sı
 
 Bu proje **Sahibinden, Arabam ve diğer ilan sitelerinin resmi API'sine bağlı değildir**. Bu sitelerden otomatik veri çekmez, korumaları aşmaz, fiyatları kendiliğinden güncellemez.

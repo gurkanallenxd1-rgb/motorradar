@@ -80,7 +80,7 @@
         if(e && e.url && e.observedAt && e.kind)events.set(eventKey(e),e);
       }
       const saved=[...events.values()]
-        .sort((a,b)=>a.observedAt.localeCompare(b.observedAt)).slice(-100);
+        .sort((a,b)=>a.observedAt.localeCompare(b.observedAt));
       if(target) {target.gmailEvents=saved;processed.add(target.id);continue;}
       target = {
         id:generateId(),title:newest.title||newest.model||'Gmail ilan bildirimi',
