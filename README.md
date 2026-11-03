@@ -1,3 +1,7 @@
+# MotorRadar 3.7 Beta
+
+Kaynaklı noter, sigorta ve ekspertiz bütçesi; eksik tutarlar açıkça bilinmiyor gösterilir. [Kaynak durumu, güvenli güncelleme ve kullanım](docs/3-7-masraf-arastirmasi.md).
+
 ## MotorRadar 3.6.2 Beta — Yan yana motor karşılaştırması
 
 İki kompakt kart, üç adayda yatay kaydırma, kısa fark etiketleri ve kart başına “Detayları göster”. Hesaplama kuralları ve kayıtlı veriler korunur. [Sürüm notları](docs/3-6-2-yan-yana-karsilastirma.md).

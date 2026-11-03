@@ -1,0 +1,23 @@
+name: Purchase cost source freshness
+on:
+  schedule:
+    - cron: '20 6 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths: ['data/**', 'purchase-costs*.js', 'scripts/*costs.cjs', '.github/workflows/cost-audit.yml']
+permissions:
+  contents: read
+jobs:
+  source-review-queue:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/audit-costs.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cost-source-review-queue
+          path: work/cost-audit.json
+          retention-days: 30

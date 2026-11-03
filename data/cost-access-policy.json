@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {"id":"notary-2026","automatedAccess":false,"reason":"Mevzuat ve işlem istisnaları insan incelemesi gerektirir; otomatik erişim izni doğrulanmadı."},
+    {"id":"sbm-2026-11","automatedAccess":false,"reason":"PDF erişimi ve otomatik yeniden kullanım koşulları doğrulanamadı."},
+    {"id":"yamanlar-alibeykoy","automatedAccess":false,"reason":"502; robots ve kullanım koşulları değerlendirilmeden periyodik istek gönderilmez."},
+    {"id":"yamanlar-cekmekoy","automatedAccess":false,"reason":"502; robots ve kullanım koşulları değerlendirilmeden periyodik istek gönderilmez."}
+  ]
+}

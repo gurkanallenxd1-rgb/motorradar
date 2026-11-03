@@ -1,0 +1,30 @@
+const {test,expect}=require('@playwright/test');
+test.use({serviceWorkers:'block',screenshot:'only-on-failure'});
+const base=require('../../data/cost-sources.json');
+const rec=(id,model='Yamaha R25',price=240000)=>({id,title:'Motor '+id,model,price,verifiedPrice:price,priceVerifiedAt:'2026-01-01',year:2024,km:10000,status:'following',notes:'koru',history:[],createdAt:'2026-01-01',custom:{keep:true}});
+async function seed(page,data=base){await page.route('**/data/cost-sources.json',route=>route.fulfill({json:data}));await page.goto('/');await page.evaluate(xs=>{localStorage.setItem('motorradar-v1',JSON.stringify(xs));localStorage.setItem('motorradar-budget','275000');localStorage.setItem('motorradar-drive-sentinel','koru')},[rec('a'),rec('b','Yamaha MT-25',230000),rec('c','KTM Duke 250',220000)]);await page.reload();await expect(page.locator('#researchDialog')).toHaveCount(1)}
+async function fits(page){for(const width of [320,375,390]){await page.setViewportSize({width,height:844});const g=await page.locator('#researchDialog .dialog-content').evaluate(e=>({overflow:e.scrollWidth-e.clientWidth,scrollLeft:e.scrollLeft,controls:[...e.querySelectorAll('input,select,label,p')].filter(n=>n.scrollWidth>n.clientWidth+1&&n.getClientRects().length).map(n=>({tag:n.tagName,id:n.id,type:n.type,overflow:n.scrollWidth-n.clientWidth,html:n.outerHTML.slice(0,1000),whiteSpace:getComputedStyle(n).whiteSpace,display:getComputedStyle(n).display})),offenders:[...e.querySelectorAll('*')].filter(n=>n.getBoundingClientRect().right>e.getBoundingClientRect().right+1).map(n=>({tag:n.tagName,id:n.id,type:n.type,width:n.getBoundingClientRect().width}))}));expect(g.overflow,JSON.stringify(g)).toBeLessThanOrEqual(1)}}
+test('research never modifies listings/photos/budget; exact SBM step changes and quote stays separate',async({page})=>{
+ const d=structuredClone(base),at=new Date().toISOString().slice(0,10);d.insurance.access='verified';d.insurance.verifiedAt=at;d.insurance.validFrom=at;d.insurance.validTo='2026-12-31';d.insurance.rows=[{province:34,step:4,amount:5000},{province:34,step:8,amount:2000}];
+ await seed(page,d);await page.evaluate(async()=>{const b=new Blob(['photo-original']);await MotorPhotoStore.set('a',[{image:b,thumb:b}])});
+ const before=await page.evaluate(()=>({listings:localStorage.getItem('motorradar-v1'),budget:localStorage.getItem('motorradar-budget'),drive:localStorage.getItem('motorradar-drive-sentinel')}));
+ await page.locator('[data-research-open="a"]').first().click();await page.locator('#research-province').selectOption('34');await page.locator('#research-step').selectOption('4');
+ await expect(page.locator('#researchResult')).toContainText('5.000');await expect(page.locator('#researchResult')).toContainText('teklif değildir');
+ await page.locator('#research-step').selectOption('8');await expect(page.locator('#researchResult')).toContainText('2.000');
+ await page.locator('#research-providerId').selectOption('yamanlar-alibeykoy');await expect(page.locator('#researchResult')).toContainText('4.500');await expect(page.locator('#researchResult')).toContainText('Erişim hatası');
+ await fits(page);await page.locator('#research-insuranceMode').selectOption('quote');await page.locator('#research-insuranceQuote').fill('3000');await page.locator('#research-insuranceQuote').press('Tab');await page.locator('[data-research="quoteDate"]').fill(at);await page.locator('[data-research="quoteDate"]').press('Tab');
+ for(const [key,value] of [['notaryService','500'],['registration','1511'],['service','2000'],['parts','0'],['other','0']]){await page.locator('#research-'+key).fill(value);await page.locator('#research-'+key).press('Tab')}
+ for(const key of ['service','parts','other'])await page.locator(`[data-research="${key}Approved"]`).check();
+ await expect(page.locator('#researchResult')).toContainText('Tahmini senaryo toplamı');await expect(page.locator('#researchResult')).toContainText('252.511');await expect(page.locator('#researchResult')).not.toContainText('Kesinleşen toplam');
+ await fits(page);
+ await page.locator('#researchDialog .close').click();await page.locator('[data-research-open="b"]').first().click();await expect(page.locator('#research-insuranceQuote')).toHaveValue('');await page.locator('#researchDialog .close').click();await page.reload();
+ expect(await page.evaluate(()=>({listings:localStorage.getItem('motorradar-v1'),budget:localStorage.getItem('motorradar-budget'),drive:localStorage.getItem('motorradar-drive-sentinel')}))).toEqual(before);
+ expect(await page.evaluate(async()=>{const p=await MotorPhotoStore.get('a');return [await p[0].image.text(),await p[0].thumb.text()]})).toEqual(['photo-original','photo-original']);
+ await page.locator('[data-research-open="a"]').first().click();await expect(page.locator('#research-insuranceQuote')).toHaveValue('3000');
+});
+test('inaccessible sources and expired duty do not produce a complete total or reuse old-year duty',async({page})=>{
+ const d=structuredClone(base);d.notary.validTo='2025-12-31';await seed(page,d);await page.locator('[data-research-open="a"]').first().click();await expect(page.locator('#researchResult')).toContainText('Eksik kalemli ara toplam');await expect(page.locator('#researchResult')).toContainText('Tam bütçe hesaplanamadı');await expect(page.locator('#researchResult')).toContainText('Bilinmeyen');await expect(page.locator('#researchResult')).toContainText('2025-12-31');
+});
+test('static source request failure leaves unknowns explicit and storage untouched',async({page})=>{
+ await page.route('**/data/cost-sources.json',route=>route.abort());await page.goto('/');await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),rec('a'));await page.reload();const before=await page.evaluate(()=>JSON.stringify(localStorage));await page.locator('[data-research-open="a"]').click();await expect(page.locator('#researchDialog')).toContainText('Kaynak verisi alınamadı');await expect(page.locator('#researchResult')).toContainText('Tam bütçe hesaplanamadı');expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(before);
+});
