@@ -1,4 +1,6 @@
-# MotorRadar 3.8 Beta
+# MotorRadar 3.9 Beta
+
+Satın Alma Asistanı: ilan başına yedi kalıcı görev, dört durum, kritik eksikler ve yan yana hazırlık karşılaştırması. [Kullanım ve veri güvenliği](docs/3-9-satin-alma-asistani.md).
 
 Kaynak göstergeleri, manuel/kaynaklı tutar karşılaştırması ve firmaya bağlı gerçek teklifler. [Davranış ve veri koruma notları](docs/3-7-3-akilli-masraf.md). Gerçek iPhone üzerinde henüz test edilmedi.
 

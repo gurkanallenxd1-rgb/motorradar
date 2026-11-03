@@ -2,6 +2,7 @@
 (function(root){
  'use strict';
  const COSTS='motorradar-costs-v37',STORE='motorradar-v1',RECOVERY='motorradar-pre-import-v371',PENDING='motorradar-import-pending-v371';
+ const A=typeof module!=='undefined'?require('./purchase-assistant.js'):root.MotorPurchaseAssistant,TASKS=A.KEY;
  const unsafe=k=>['__proto__','prototype','constructor'].includes(k);
  const numbers=new Set(['registrationSourceAmount','notaryServiceSourceAmount','providerQuote','insuranceQuote','inspectionQuote','notaryService','registration','service','parts','other']);
  const bools=new Set(['providerQuoteApproved','authorizedBuyer','serviceApproved','partsApproved','otherApproved','quoteApproved','registrationSource','notaryServiceSource']);
@@ -24,24 +25,26 @@
   }
   return out;
  }
- function snapshot(listings,storage){return {app:'MotorRadar',version:'3.7.4-beta',exportedAt:new Date().toISOString(),photosIncluded:false,listings,costScenarios:scenarios(JSON.parse(storage.getItem(COSTS)||'{}'))};}
- function preview(d,existing,costs,valid,duplicate){
+ function snapshot(listings,storage){return {app:'MotorRadar',version:'3.9.0-beta',exportedAt:new Date().toISOString(),photosIncluded:false,listings,costScenarios:scenarios(JSON.parse(storage.getItem(COSTS)||'{}')),purchasePreparation:A.read(storage)};}
+ function preview(d,existing,costs,valid,duplicate,preparation={}){
   if(d?.app!=='MotorRadar'||!Array.isArray(d.listings)||d.listings.length>10000||!d.listings.every(valid))throw Error('Geçersiz yedek');
   const ids=new Set();for(const x of d.listings){if(!x.id||unsafe(x.id)||ids.has(x.id))throw Error('Tekrarlanan ilan');ids.add(x.id);}
   const merged=existing.map(x=>({...x}));let added=0,updated=0;
   for(const x of d.listings){const i=merged.findIndex(y=>y.id===x.id);if(merged.some(y=>y.id!==x.id&&duplicate(x,[y])))throw Error('Çakışan ilan bağlantısı');if(i<0){merged.push(x);added++}else{merged[i]={...merged[i],...x};updated++}}
   const incoming=Object.hasOwn(d,'costScenarios')?scenarios(d.costScenarios):null;
-  const current=scenarios(costs);return {listings:merged,costs:incoming===null?current:Object.assign(Object.create(null),current,incoming),added,updated,kept:existing.length-updated,scenarioCount:incoming===null?0:Object.keys(incoming).length,legacy:incoming===null};
+  const currentTasks=A.validate(preparation),incomingTasks=Object.hasOwn(d,'purchasePreparation')?A.validate(d.purchasePreparation):null;
+  const mergedTasks=Object.assign(Object.create(null),currentTasks);if(incomingTasks)for(const [id,record] of Object.entries(incomingTasks))mergedTasks[id]={...mergedTasks[id],...record};
+  const current=scenarios(costs);return {preparation:mergedTasks,taskCount:incomingTasks?Object.values(incomingTasks).reduce((n,r)=>n+Object.keys(r).length,0):0,listings:merged,costs:incoming===null?current:Object.assign(Object.create(null),current,incoming),added,updated,kept:existing.length-updated,scenarioCount:incoming===null?0:Object.keys(incoming).length,legacy:incoming===null};
  }
  function apply(plan,storage,expected){
-  const before={listings:storage.getItem(STORE),costs:storage.getItem(COSTS)};
-  if(before.listings!==expected.listings||before.costs!==expected.costs)throw Error('Veriler başka sekmede değişti; önizlemeyi yeniden açın.');
+  const before={listings:storage.getItem(STORE),costs:storage.getItem(COSTS),preparation:storage.getItem(TASKS)};
+  if(before.listings!==expected.listings||before.costs!==expected.costs||(Object.hasOwn(expected,'preparation')&&before.preparation!==expected.preparation))throw Error('Veriler başka sekmede değişti; önizlemeyi yeniden açın.');
   // A write failure here prevents any mutation. This copy also survives an interrupted tab.
-  storage.setItem(RECOVERY,JSON.stringify({app:'MotorRadar',version:'3.7.4-beta',photosIncluded:false,exportedAt:new Date().toISOString(),listings:JSON.parse(before.listings||'[]'),costScenarios:JSON.parse(before.costs||'{}')}));
+  storage.setItem(RECOVERY,JSON.stringify({app:'MotorRadar',version:'3.9.0-beta',photosIncluded:false,exportedAt:new Date().toISOString(),listings:JSON.parse(before.listings||'[]'),costScenarios:JSON.parse(before.costs||'{}'),purchasePreparation:A.validate(JSON.parse(before.preparation||'{}'))}));
   storage.setItem(PENDING,JSON.stringify(before));
-  try{storage.setItem(COSTS,JSON.stringify(plan.costs));storage.setItem(STORE,JSON.stringify(plan.listings));storage.removeItem(PENDING);}
+  try{if(plan.preparation)storage.setItem(TASKS,JSON.stringify(A.validate(plan.preparation)));storage.setItem(COSTS,JSON.stringify(plan.costs));storage.setItem(STORE,JSON.stringify(plan.listings));storage.removeItem(PENDING);}
   catch(error){try{recover(storage)}catch{}throw Error('Kaydedilemedi. İçe aktarma öncesi ayrı yedeği kullanın.');}
  }
- function recover(storage){const raw=storage.getItem(PENDING);if(!raw)return false;const b=JSON.parse(raw);if(!b||!Object.hasOwn(b,'listings')||!Object.hasOwn(b,'costs'))throw Error('Kurtarma verisi okunamadı');for(const [k,v] of [[COSTS,b.costs],[STORE,b.listings]])v===null?storage.removeItem(k):storage.setItem(k,v);storage.removeItem(PENDING);return true;}
- const api={recover,scenarios,snapshot,preview,apply,COSTS,STORE,RECOVERY,PENDING};if(typeof module!=='undefined')module.exports=api;else {root.MotorBackup=api;try{recover(localStorage)}catch{alert('Kesilen içe aktarma kurtarılamadı. İçe aktarma öncesi ayrı JSON yedeğinizi kullanın.')}}
+ function recover(storage){const raw=storage.getItem(PENDING);if(!raw)return false;const b=JSON.parse(raw);if(!b||!Object.hasOwn(b,'listings')||!Object.hasOwn(b,'costs'))throw Error('Kurtarma verisi okunamadı');for(const [k,v] of [[COSTS,b.costs],[STORE,b.listings],...(Object.hasOwn(b,'preparation')?[[TASKS,b.preparation]]:[])])v===null?storage.removeItem(k):storage.setItem(k,v);storage.removeItem(PENDING);return true;}
+ const api={recover,scenarios,snapshot,preview,apply,TASKS,COSTS,STORE,RECOVERY,PENDING};if(typeof module!=='undefined')module.exports=api;else {root.MotorBackup=api;try{recover(localStorage)}catch{alert('Kesilen içe aktarma kurtarılamadı. İçe aktarma öncesi ayrı JSON yedeğinizi kullanın.')}}
 })(globalThis);
