@@ -46,3 +46,32 @@ test('one tap research preserves manual inputs, explicit source choice and faile
  const saved=await page.evaluate(()=>JSON.stringify(localStorage));
  await page.route('**/data/cost-sources.json',route=>route.abort());await page.locator('#autoResearch').click();await expect(page.locator('#autoResearchStatus')).toContainText('güncellemesi başarısız');expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(saved);
 });
+
+test('source refresh discloses its limits and preserves all 81 listings and manual amounts',async({page})=>{
+ await seed(page);
+ await page.evaluate(xs=>{
+  localStorage.setItem('motorradar-v1',JSON.stringify(xs));
+  localStorage.setItem('motorradar-costs-v37',JSON.stringify({a:{notaryService:2345,registration:2000,insuranceMode:'quote',insuranceQuote:7654,quoteDate:'2026-11-03',quoteApproved:true}}));
+ },Array.from({length:81},(_,i)=>rec(i===0?'a':'listing-'+i)));
+ await page.reload();await page.locator('[data-research-open="a"]').first().click();
+ await expect(page.getByRole('button',{name:'Kaynak dosyasını yenile',exact:true})).toBeVisible();
+ await expect(page.locator('#sourceRefreshHelp')).toContainText('Canlı sigorta, noter veya ekspertiz fiyatı araştırması yapmaz');
+ const before=await page.evaluate(()=>JSON.stringify(localStorage));
+ const requests=[];page.on('request',r=>requests.push(r.url()));
+ const next=JSON.parse(JSON.stringify(base));next.registration.amount=1600;
+ await page.route('**/data/cost-sources.json',route=>route.fulfill({json:next}));
+ await page.locator('#autoResearch').click();
+ await expect(page.locator('#autoResearchStatus')).toContainText('Yeni yayımlanmış kaynak dosyası');
+ await expect(page.locator('#autoResearchStatus')).toContainText('canlı fiyat alınmadı');
+ await expect(page.locator('#research-notaryService')).toHaveValue('2345');
+ await expect(page.locator('#research-registration')).toHaveValue('2000');
+ await expect(page.locator('#research-insuranceQuote')).toHaveValue('7654');
+ expect(requests).toHaveLength(1);expect(new URL(requests[0]).pathname).toBe('/data/cost-sources.json');
+ expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(before);
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')).length)).toBe(81);
+ await page.route('**/data/cost-sources.json',route=>route.fulfill({json:next,headers:{'X-MotorRadar-Source-Cache':'stale'}}));
+ await page.locator('#autoResearch').click();await expect(page.locator('#autoResearchStatus')).toContainText('Güncelleme başarısız');
+ await page.route('**/data/cost-sources.json',route=>route.fulfill({json:{invalid:true}}));
+ await page.locator('#autoResearch').click();await expect(page.locator('#autoResearchStatus')).toContainText('güncellemesi başarısız');
+ expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(before);
+});

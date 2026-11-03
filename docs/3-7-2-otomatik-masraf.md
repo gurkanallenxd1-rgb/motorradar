@@ -2,7 +2,7 @@
 
 Başlangıç: 3 Kasım 2026 tarihinde GitHub API ile doğrulanan main `9668ac33dd66f42db1f13cd5c06610ba30a2bd4a`. Kaynak fiyatları veya doğrulama tarihleri bu sürüm için değiştirilmedi.
 
-Her ilanın Masraf Araştırması ekranındaki **Masrafları otomatik araştır** düğmesi aynı origin kaynak dosyasını yeniden indirir, şemayı ve geçerlilik tarihlerini değerlendirir. Mevcut dosya kullanıldığında “Daha önce kaydedilmiş fiyat kullanıldı” der. Yeni dosya, canlı sağlayıcı araştırması veya yeni kişisel teklif olarak adlandırılmaz. Ağ veya PWA yedek cache hatası açıkça belirtilir. Manuel senaryolar araştırma sırasında yazılmaz.
+Her ilanın Masraf Araştırması ekranındaki **Kaynak dosyasını yenile** düğmesi yalnız sitenin yayımlanmış kaynak dosyasını yeniden indirir, şemayı ve geçerlilik tarihlerini değerlendirir. Mevcut dosya kullanıldığında “Daha önce kaydedilmiş fiyat kullanıldı” der. Yeni dosya, canlı sağlayıcı araştırması veya yeni kişisel teklif olarak adlandırılmaz. Ağ veya PWA yedek cache hatası açıkça belirtilir. Manuel senaryolar araştırma sırasında yazılmaz.
 
 ## Kaynaklar ve erişim sınırları
 
@@ -28,3 +28,21 @@ Yeni fiyat ancak mevcut `import-costs.cjs` kanıt incelemesi ve kod incelemeli P
 Bunlar kesin toplam değildir. Sigorta, noter işlem toplamı, seçilmemiş ekspertiz, onaysız bakım/parça/diğer giderler eksiktir. Seçilen ekspertiz yayını ayrıca tahmini kalem olarak eklenir. Yan yana karşılaştırma korunur.
 
 `motorradar-v1`, `motorradar-costs-v37`, fotoğraf IndexedDB ve önceki içe aktarma kurtarma anahtarları korunur. Migration veya otomatik silme yoktur. Yeni senaryo alanları güvenli JSON yedeklemesine dahildir. Başka sekmede senaryo değişirse yazma reddedilir. Güncelleme hatasında kaynak ve manuel kayıtlar korunur.
+
+## 3 Kasım 2026 — dürüst yenileme açıklaması ve entegrasyon değerlendirmesi
+
+Buton adı ve tıklama öncesi açıklama artık gerçek işlemi belirtir. Değişmiş JSON dosyası alındığında da dış sağlayıcılardan canlı fiyat alınmadığı açıkça yazılır. Actions çıktısı atlanan kaynak sayısını bildirir; atlama başarılı araştırma diye sunulmaz. PWA statik cache anahtarı yeni açıklamanın çevrimdışı sürüme de geçmesi için yenilendi.
+
+| Aday | Entegrasyon için gereken | Bu oturumdaki sonuç |
+|---|---|---|
+| SBM resmî azami prim tablosu ve PDF | Otomatik erişim/yeniden kullanım izni, erişilebilir dönem PDF'i, doğrulanmış il/sınıf/profil/basamak satırları | İzin kaydı yok; mevcut PDF satırları boş. Prim üretilmez. Tavan kişisel teklif yerine kullanılmaz. |
+| Resmî Gazete / GİB harç mevzuatı | Erişim izni ve işlem kapsamına göre insan incelemesi | Mevcut politika izin vermiyor; yeni doğrulama tarihi yazılmaz. |
+| Adalet Bakanlığı noter tarifesi | İzin, yürürlük/değişiklik takibi, araç işlem kapsamı | Alt kalemlerden toplam ücret çıkarılmaz; manuel tutar korunur. |
+| HMB tescil belgesi tarifesi | İzinli erişilebilir belge, doğru tablo satırı ve geçerlilik | Önceki yayımlanmış kayıt korunur; bu oturumda yeniden doğrulanmadı. |
+| Ekspertiz sağlayıcılarının kendi yayınları | Her sağlayıcıdan otomatik erişim ve yeniden kullanım izni, kapsam ve tarih doğrulaması | Hiçbir izin kaydı doğrulanmış değil; paket fiyatlarına dokunulmaz. |
+
+Bu değerlendirme mevcut kaynak URL'leri, erişim politikası ve entegrasyon kodunun incelenmesine dayanır. Bu oturumda Resmî Gazete, Adalet Bakanlığı, HMB ve SBM belge adreslerine yapılan HEAD istekleri ortamın proxy ağ politikası tarafından 403 Forbidden ile engellendi; resmî siteler, robots ve kullanım koşulları yeniden okunamadı. Bu, kaynakların dünyada erişilemez veya kesinlikle izinsiz olduğunu kanıtlamaz. Doğrulanmış uygun kaynak bulunamadığından canlı güncelleme eklenmedi, izinler genişletilmedi ve fiyatlar/doğrulama tarihleri değiştirilmedi.
+
+Doğrulama: kilitli bağımlılıklarla Node 98/98 ve Chromium masraf testleri 5/5 geçti. Yeni tarayıcı testi değişmiş kaynak dosyası, eski cache ve bozuk JSON yanıtlarında 81 ilanı ve manuel noter/ruhsat/sigorta tutarlarını karşılaştırır; yalnız aynı origin kaynak JSON isteğini doğrular. iPhone WebKit çalıştırması tekrar denendi; motor kurulu değil ve indirme alan adları ağ politikasıyla engelli olduğundan testler doğrulanamadı. Önceki CI sonuçları bu değişikliğin sonucu olarak sunulmaz.
+
+PR #21 birleştirildikten sonra bu düzeltmeler güncel main `1df123c` üzerinden oluşturulan `fix/3-7-2-source-refresh-label` dalına taşındı. PWA cache anahtarı yenilendi; ilan, fotoğraf, manuel senaryo ve yedek depolarına migration veya silme eklenmedi. Güncel CI sonuçları yeni PR açıklamasında izlenir.
