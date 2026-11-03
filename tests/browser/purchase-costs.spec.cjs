@@ -41,7 +41,7 @@ test('one tap research preserves manual inputs, explicit source choice and faile
  await page.locator('[data-research="registrationRequired"]').selectOption('no');
  await expect(page.locator('#researchResult')).toContainText('Belge düzenlenmiyor');
  await page.locator('#providerLocation').selectOption({label:'Ataşehir / İstanbul'});await expect(page.locator('#providerCards .cost-card')).toHaveCount(1);await expect(page.locator('#providerCards')).toContainText('6.000');
- await fits(page);
+ await page.locator('#providerCards [data-package]').click();await page.locator('#providerSort').selectOption('price');await fits(page);
  const saved=await page.evaluate(()=>JSON.stringify(localStorage));
  await page.route('**/data/cost-sources.json',route=>route.abort());await page.locator('#autoResearch').click();await expect(page.locator('#autoResearchStatus')).toContainText('güncellemesi başarısız');expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(saved);
 });
