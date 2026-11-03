@@ -45,6 +45,31 @@ test('local optimized photos: gallery, main, replace, download, delete, reload a
  expect(errors).toEqual([]);expect(outside).toEqual([]);
 });
 
+test('iPhone card preview paints immediately with 78 listings and survives rerenders',async({page})=>{
+ const records=Array.from({length:78},(_,i)=>({...row,id:'card-'+i,title:'Motor '+i}));
+ await page.goto('/');
+ await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),records);
+ await page.reload();
+ const card=page.locator('[data-photo="card-0"]');
+ await expect(card).toHaveText('Fotoğraf yok');
+ await page.locator('[data-photos="card-0"]').click();
+ await addPhoto(page,await image(page));
+ // This image must appear in the listing itself, not only in the gallery.
+ await expect(card.locator('img')).toHaveCount(1);
+ await page.locator('[data-close=photoDialog]').click();
+ await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await page.locator('#unknownPriceOnly').check();
+ await expect(page.locator('.listing')).toHaveCount(0);
+ await page.locator('#unknownPriceOnly').uncheck();
+ await expect(page.locator('.listing')).toHaveCount(78);
+ await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await page.locator('#sort').selectOption('cheap');
+ await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await page.reload();
+ await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ expect(await saved(page)).toEqual(records);
+});
+
 test('photo write failure and invalid images preserve existing photos and listing JSON',async({page})=>{
  await seed(page);const file=await image(page);await page.locator('[data-photos]').click();await addPhoto(page,file);
  await page.evaluate(()=>{MotorPhotoStore.set=async()=>{throw Error('Test: fotoğraf kaydedilemedi')}});
