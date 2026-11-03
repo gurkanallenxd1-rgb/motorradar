@@ -57,16 +57,16 @@ test('iPhone card preview paints immediately with 78 listings and survives reren
  // This image must appear in the listing itself, not only in the gallery.
  await expect(card.locator('img')).toHaveCount(1);
  await page.locator('[data-close=photoDialog]').click();
- await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getBoundingClientRect().width>40&&img.getBoundingClientRect().height>40&&img.currentSrc.startsWith('data:image/jpeg;base64,'))).toBe(true);
  await page.locator('#unknownPriceOnly').check();
  await expect(page.locator('.listing')).toHaveCount(0);
  await page.locator('#unknownPriceOnly').uncheck();
  await expect(page.locator('.listing')).toHaveCount(78);
- await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getBoundingClientRect().width>40&&img.getBoundingClientRect().height>40&&img.currentSrc.startsWith('data:image/jpeg;base64,'))).toBe(true);
  await page.locator('#sort').selectOption('cheap');
- await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getBoundingClientRect().width>40&&img.getBoundingClientRect().height>40&&img.currentSrc.startsWith('data:image/jpeg;base64,'))).toBe(true);
  await page.reload();
- await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getBoundingClientRect().width>40&&img.getBoundingClientRect().height>40&&img.currentSrc.startsWith('data:image/jpeg;base64,'))).toBe(true);
  expect(await saved(page)).toEqual(records);
 });
 
