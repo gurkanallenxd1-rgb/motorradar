@@ -40,6 +40,13 @@
         else if(/^[\d.\s]+\s*km$/i.test(text)){const v=convert('km',text);if(v!==null)candidates.km.add(v);}
       }
     }
+    // Recognize only explicit, known motorcycle names; never guess from engine size.
+    if(!candidates.model.size){
+      const known=[['Yamaha','MT-25',/\b(?:yamaha\s+)?mt[ -]?25\b/i],['Yamaha','R25',/\byamaha\s+r[ -]?25\b/i],['Honda','CBR250R',/\b(?:honda\s+)?cbr[ -]?250[ -]?r\b/i],['KTM','Duke 250',/\bktm\s+(?:duke\s+250|250\s+duke)\b/i],['Bajaj','Dominar 250',/\b(?:bajaj\s+)?dominar\s+250\b/i],['CFMOTO','250NK',/\b(?:cfmoto\s+)?250[ -]?nk\b/i]];
+      for(const page of pages)for(const line of page.lines||[])if(line.confidence>=85&&!/https?:\/\/|www\.|shbd\.io/i.test(line.text)){
+        for(const [brand,model,pattern] of known)if(pattern.test(fold(line.text))){candidates.model.add(brand+' '+model);candidates.brand.add(brand)}
+      }
+    }
     const values={},ambiguous=[];
     for(const [key,set] of Object.entries(candidates)){if(set.size===1)values[key]=[...set][0];else if(set.size>1)ambiguous.push(key);}
     return {values,ambiguous};

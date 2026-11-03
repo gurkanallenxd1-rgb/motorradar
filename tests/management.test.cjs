@@ -37,9 +37,9 @@ test('missing fields, unchecked and terminal filters combine with existing filte
  const xs=[{...original,id:'missing',model:'',year:null,price:null,km:null,status:'unknown'}, {...original,id:'zero',km:0,lastCheckedAt:'2026-01-02',status:'sold'}, {...original,id:'removed',status:'removed'}, {...original,id:'gave',status:'gave_up'}];
  const a=app(xs);
  for(const id of ['unknownPriceOnly','unknownYearOnly','unknownKmOnly','unknownModelOnly']){a.els[id].checked=true;a.els[id].onchange();assert.equal(count(a),1)}
- a.els.minKm.value='0';a.els.minKm.oninput();assert.equal(count(a),0);a.els.resetFilters.onclick();assert.equal(count(a),4);
- a.els.uncheckedOnly.checked=true;a.els.uncheckedOnly.onchange();assert.equal(count(a),3);a.els.hideClosed.checked=true;a.els.hideClosed.onchange();assert.equal(count(a),2);
- a.els.sourceFilter.value='gmail';a.els.sourceFilter.onchange();assert.equal(count(a),0);a.els.resetFilters.onclick();assert.equal(count(a),4);
+ a.els.minKm.value='0';a.els.minKm.oninput();assert.equal(count(a),0);a.els.resetFilters.onclick();assert.equal(count(a),2);
+ a.els.uncheckedOnly.checked=true;a.els.uncheckedOnly.onchange();assert.equal(count(a),2);a.els.hideClosed.checked=true;a.els.hideClosed.onchange();assert.equal(count(a),2);
+ a.els.sourceFilter.value='gmail';a.els.sourceFilter.onchange();assert.equal(count(a),0);a.els.resetFilters.onclick();assert.equal(count(a),2);
 });
 test('dashboard counts whole collection and keeps historical Gmail prices separate',()=>{
  const a=app([{...original,status:'unknown',price:null,history:[],gmailEvents:[{kind:'new_listing',price:250000,observedAt:'2026-01-01'}]}, {...original,id:'sold',status:'sold',lastCheckedAt:'2026-01-02'}, {...original,id:'removed',status:'removed',gmailEvents:[{kind:'new_listing',price:200000,observedAt:'2026-01-01'},{kind:'price_drop',newPrice:null,observedAt:'2026-02-01'}]}]);
@@ -55,4 +55,15 @@ test('2.5, 3.0, 3.1 and 3.2 backups preserve metadata through restore and bulk e
 test('checking a listing records date without changing status, price or Gmail history',()=>{
  const a=app(records());a.events['cards:click']({target:{closest:selector=>selector==='[data-checked]'?{dataset:{checked:'id0'}}:null}});
  const [x]=a.data();assert.ok(x.lastCheckedAt);assert.deepEqual({...x,lastCheckedAt:null},records()[0]);
+});
+
+test('single and bulk terminal changes archive immediately; archive controls stay in sync',()=>{
+ const a=app(records());a.events['cards:change']({target:{dataset:{status:'id0'},value:'sold'}});assert.equal(count(a),39);
+ a.els.showArchive.checked=true;a.els.showArchive.onchange();assert.equal(count(a),40);assert.equal(a.els.hideClosed.checked,false);
+ assert.match(a.els.cards.innerHTML,/Tekrar takip et/);
+ a.events['cards:click']({target:{closest:selector=>selector==='[data-follow]'?{dataset:{follow:'id0'}}:null}});
+ a.els.hideClosed.checked=true;a.els.hideClosed.onchange();assert.equal(a.els.showArchive.checked,false);assert.equal(count(a),40);
+ a.els.selectVisible.onclick();apply(a,'removed');assert.equal(count(a),0);assert.equal(a.data().length,40);
+ a.els.statusFilter.value='removed';a.els.statusFilter.onchange();assert.equal(count(a),40);assert.equal(a.els.showArchive.checked,true);
+ a.els.resetFilters.onclick();assert.equal(count(a),0);assert.equal(a.els.hideClosed.checked,true);
 });

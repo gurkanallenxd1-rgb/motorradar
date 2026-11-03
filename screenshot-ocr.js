@@ -23,13 +23,13 @@
       const base=new URL('./vendor/ocr/',document.baseURI).href;
       worker=await root.Tesseract.createWorker('tur',1,{workerPath:base+'worker.min.js',corePath:base+'tesseract-core-lstm.wasm.js',langPath:base,workerBlobURL:false,cacheMethod:'none',onWorker:w=>{rawWorker=w;w.addEventListener('error',()=>rejectCancel(Error('OCR başlatılamadı.')));},errorHandler:()=>rejectCancel(Error('OCR dosyaları yüklenemedi veya okuma başarısız oldu.')),logger:m=>{if(!stopped)onProgress(m.status, m.progress||0);}});
       if(stopped){await worker.terminate();throw Error('Okuma iptal edildi.');}
-      const pages=[];
+      const pages=[]; // Retain line-level confidence; never promote a page average to a field.
       for(let i=0;i<files.length;i++){
         if(stopped)throw Error('Okuma iptal edildi.');onProgress(`${i+1}/${files.length} görsel okunuyor`,0);
         const canvas=await decode(files[i]);
         if(stopped){canvas.width=canvas.height=1;throw Error('Okuma iptal edildi.');}
         try{const result=await worker.recognize(canvas,{}, {blocks:true,text:true});
-          pages.push({lines:(result.data.blocks||[]).flatMap(b=>b.paragraphs||[]).flatMap(p=>p.lines||[]).map(l=>({text:l.text,confidence:l.confidence}))});
+          pages.push({lines:(result.data.blocks||[]).flatMap(b=>b.paragraphs||[]).flatMap(p=>p.lines||[]).map(l=>({text:String(l.text||'').replace(/\r/g,''),confidence:Number(l.confidence)}))});
         }finally{canvas.width=canvas.height=1;}
       }
       return MotorOCR.extract(pages);

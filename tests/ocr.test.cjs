@@ -11,9 +11,9 @@ test('extract explicit Turkish labels and preserve model year distinction',()=>{
 test('labels on separate lines, standalone currency and zero km',()=>{
  assert.deepEqual(extract([page('Marka','Honda','₺ 250.000','0 km','Model Yılı','2024')]).values,{brand:'Honda',year:2024,price:250000,km:0});
 });
-test('no inference from title, URL, unlabelled text or low confidence',()=>{
+test('explicit model in title is recognized but year/city/price and low confidence stay unknown',()=>{
  const p=page('Yamaha MT-25 2023 İstanbul','https://shbd.io/s/Abc','245000');p.lines.push({text:'Fiyat 250.000 TL',confidence:40});
- assert.deepEqual(extract([p]).values,{});
+ assert.deepEqual(extract([p]).values,{brand:'Yamaha',model:'Yamaha MT-25'});
 });
 test('conflicting fields across screenshots remain blank, repeated values survive',()=>{
  const r=extract([page('Marka Yamaha','Fiyat 240.000 TL','Model Yılı 2022'),page('Marka Yamaha','Fiyat 250.000 TL','Model Yılı 2023')]);

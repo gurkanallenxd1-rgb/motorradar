@@ -24,7 +24,7 @@ test('advanced filters, historical dashboard and empty states at 320, 375, 390px
  await expect(page.locator('#gmailBudgetStat')).toHaveText('1');await expect(page.locator('#pricedStat')).toHaveText('3');
  for(const id of ['unknownPriceOnly','unknownYearOnly','unknownKmOnly','unknownModelOnly']){await page.locator('#'+id).check();await expect(page.locator('.listing')).toHaveCount(1)}
  await page.locator('#minKm').fill('0');await expect(page.locator('.listing')).toHaveCount(0);await expect(page.locator('#cards')).toContainText('Eşleşen ilan bulunamadı');
- await page.locator('#resetFilters').click();await page.locator('#uncheckedOnly').check();await expect(page.locator('.listing')).toHaveCount(3);await page.locator('#hideClosed').check();await expect(page.locator('.listing')).toHaveCount(2);
+ await page.locator('#resetFilters').click();await page.locator('#uncheckedOnly').check();await expect(page.locator('.listing')).toHaveCount(2);await page.locator('#hideClosed').check();await expect(page.locator('.listing')).toHaveCount(2);
  await page.locator('#sourceFilter').selectOption('gmail');await expect(page.locator('.listing')).toHaveCount(1);await page.locator('#sourceFilter').selectOption('manual');await expect(page.locator('.listing')).toHaveCount(1);
  await page.locator('#resetFilters').click();await page.locator('#selectVisible').click();
  for(const width of [320,375,390]){await page.setViewportSize({width,height:844});await page.locator('#applyBulk').scrollIntoViewIfNeeded();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);const box=await page.locator('#applyBulk').boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);}
