@@ -5,12 +5,16 @@
   const $=id=>document.getElementById(id),store=root.MotorPhotoStore;
   let draft=[],photos=[],listingId='',generation=0,renderGeneration=0,busy=false,source=null,screenshot=false;
   const urls={cards:[],gallery:[],crop:[]};
+  // Cache only small thumbnails in memory. The IndexedDB records remain the source of truth.
+  // iOS WebKit can delay lazy blob: image decoding while a modal is open.
+  const cardThumbs=new Map();
+  function remember(id,images){if(id)cardThumbs.set(id,images[0]?.thumb||null)}
   function release(group){urls[group].forEach(URL.revokeObjectURL);urls[group]=[]}
   function url(blob,group){const value=URL.createObjectURL(blob);urls[group].push(value);return value}
   function status(s){$('photoStatus').textContent=s}
   function lock(value){busy=value;['photoFile','saveCrop','photoAdd'].forEach(id=>$(id).disabled=value);$('photoGallery').querySelectorAll('button').forEach(b=>b.disabled=value)}
   async function save(next){const id=listingId,run=generation;lock(true);
-   try{if(id)await store.set(id,next);else draft=next;if(run!==generation)return;photos=next;draw();onChange();status(id?'Fotoğraflar cihazda kaydedildi.':'Fotoğraflar ilan kaydedilince saklanacak.');return true;}
+   try{if(id)await store.set(id,next);else draft=next;if(run!==generation)return;photos=next;remember(id,next);draw();onChange();status(id?'Fotoğraflar cihazda kaydedildi.':'Fotoğraflar ilan kaydedilince saklanacak.');return true;}
    catch(e){if(run===generation)status(e.message)}finally{if(run===generation)lock(false)}
   }
   function draw(){release('gallery');$('photoGallery').replaceChildren();photos.forEach((p,index)=>{
@@ -43,15 +47,33 @@
    }catch(e){if(run===generation)status(e.message)}finally{if(run===generation)lock(false)}
   };
   async function open(id,file){generation++;const run=generation;listingId=id||'';source=null;photos=[];release('crop');$('photoCrop').hidden=true;$('photoReplace').value='';lock(true);draw();$('photoDialog').showModal();status('Fotoğraflar yükleniyor…');
-   try{const loaded=id?await store.get(id):draft;if(run!==generation)return;photos=loaded;draw();lock(false);status('Ana fotoğraf ilk sıradadır. En fazla 4 fotoğraf.');if(file)await crop(file,true)}catch(e){if(run===generation)status(e.message)}
+   try{const loaded=id?await store.get(id):draft;if(run!==generation)return;photos=loaded;remember(id,loaded);draw();lock(false);status('Ana fotoğraf ilk sıradadır. En fazla 4 fotoğraf.');if(file)await crop(file,true)}catch(e){if(run===generation)status(e.message)}
   }
   $('photoDialog').addEventListener('close',()=>{generation++;source=null;release('gallery');release('crop')});
+  function paintCard(node,thumb,run){
+   if(!thumb||run!==renderGeneration||!node.isConnected)return;
+   const img=document.createElement('img');
+   img.alt='İlanın kullanıcı tarafından eklenen fotoğrafı';
+   // Eager-loading these tiny, locally stored thumbnails avoids a Safari/WebKit
+   // lazy blob URL that never starts loading while the photo dialog is open.
+   img.loading='eager';img.decoding='async';
+   img.src=url(thumb,'cards');
+   node.replaceChildren(img);
+  }
   async function hydrate(container){const run=++renderGeneration;release('cards');
-   await Promise.all([...container.querySelectorAll('[data-photo]')].map(async node=>{try{const images=await store.get(node.dataset.photo);if(run!==renderGeneration||!node.isConnected||!images.length)return;
-    const img=document.createElement('img');img.src=url(images[0].thumb,'cards');img.alt='İlanın kullanıcı tarafından eklenen fotoğrafı';img.loading='lazy';img.decoding='async';node.replaceChildren(img)}catch{}}));
+   const nodes=[...container.querySelectorAll('[data-photo]')];
+   // A newly saved photo is visible synchronously, without waiting for 78+
+   // IndexedDB reads or a photo dialog to close.
+   for(const node of nodes){const id=node.dataset.photo;if(cardThumbs.has(id))paintCard(node,cardThumbs.get(id),run)}
+   await Promise.all(nodes.map(async node=>{
+    const id=node.dataset.photo;if(cardThumbs.has(id))return;
+    try{const images=await store.get(id);if(run!==renderGeneration||!node.isConnected)return;
+     remember(id,images);paintCard(node,images[0]?.thumb,run);
+    }catch{/* Keep the placeholder and retry on a later render. */}
+   }));
   }
   root.addEventListener('pagehide',()=>Object.keys(urls).forEach(release));
-  return {open,hydrate,resetDraft(){draft=[]},async commitDraft(id){if(!draft.length)return;const copy=draft;draft=[];try{await store.set(id,copy);onChange()}catch{alert('İlan kaydedildi; fotoğraf saklanamadı. Orijinal görseli sakla ve tekrar ekle.')} }};
+  return {open,hydrate,resetDraft(){draft=[]},async commitDraft(id){if(!draft.length)return;const copy=draft;draft=[];try{await store.set(id,copy);remember(id,copy);onChange()}catch{alert('İlan kaydedildi; fotoğraf saklanamadı. Orijinal görseli sakla ve tekrar ekle.')} }};
  }
  root.MotorListingPhotos={mount};
 })(window);
