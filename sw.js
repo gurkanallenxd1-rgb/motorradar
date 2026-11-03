@@ -1,4 +1,4 @@
-const CACHE='motorradar-static-v2.3';
+const CACHE='motorradar-static-v2.4';
 const ASSETS=['./','./index.html','./analysis.js','./listing-url.js','./ocr-parser.js','./screenshot-ocr.js','./vendor/ocr/tesseract.min.js','./vendor/ocr/worker.min.js','./vendor/ocr/tesseract-core-lstm.wasm.js','./vendor/ocr/tesseract-core-lstm.wasm','./vendor/ocr/tur.traineddata.gz','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./icon-apple.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('motorradar-static-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
