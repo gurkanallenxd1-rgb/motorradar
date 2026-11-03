@@ -71,7 +71,8 @@
   const c=calculate(x,p,d,budget,at);
   return Object.entries(S.costFields).filter(([key])=>Object.hasOwn(x.decision?.costs||{},key)).map(([key,label])=>{
    const old=x.decision.costs[key],line=c.lines.find(l=>l.key===key);
-   return {key,label,old:amount(old)?old:null,value:line?.amount??null,origin:line?.origin||'unknown',target:legacyTargets[key]||null,difference:amount(old)&&amount(line?.amount)?Math.round((line.amount-old)*100)/100:null};
+   const draft=['service','parts','other'].includes(key)&&amount(p[key]),value=draft?p[key]:line?.amount??null;
+   return {key,label,old:amount(old)?old:null,value,budgetValue:line?.amount??null,origin:draft?'manual':line?.origin||'unknown',target:legacyTargets[key]||null,difference:amount(old)&&amount(value)?Math.round((value-old)*100)/100:null};
   });
  }
  function legacyTransfer(x,p,key,consent=false){

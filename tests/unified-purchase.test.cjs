@@ -10,7 +10,7 @@ test('specific legacy transfer requires explicit consent, clears approval even f
  for(const consent of [undefined,false,'yes'])assert.throws(()=>C.legacyTransfer(x,p,'service',consent));
  const next=C.legacyTransfer(x,p,'service',true);assert.equal(next.service,0);assert.equal(next.serviceApproved,false);assert.equal(next.notaryService,2000);assert.equal(p.service,500);assert.equal(x.decision.costs.service,0);assert.equal(C.calculate(x,next,data,290000,at).lines.find(l=>l.key==='service').amount,null);
  assert.throws(()=>C.legacyTransfer(x,p,'transfer',true));assert.throws(()=>C.legacyTransfer(x,p,'constructor',true));
- assert.equal(C.expenseState({service:123},'service'),'Tutar mevcut, onay gerekli');assert.equal(C.expenseState({},'service'),'Girilmedi');assert.equal(C.expenseState({service:0,serviceApproved:true},'service'),'Onaylı · bütçeye dahil');
+ const draft=C.legacyRows(x,{service:123},data,290000,at).find(r=>r.key==='service');assert.equal(draft.value,123);assert.equal(draft.budgetValue,null);assert.equal(draft.difference,123);assert.equal(C.expenseState({service:123},'service'),'Tutar mevcut, onay gerekli');assert.equal(C.expenseState({},'service'),'Girilmedi');assert.equal(C.expenseState({service:0,serviceApproved:true},'service'),'Onaylı · bütçeye dahil');
 });
 test('legacy quotes transfer as unapproved drafts; IDs and missing motor price stay independent',()=>{
  const q={...x,decision:{costs:{insurance:8000,inspection:4000}}};const insurance=C.legacyTransfer(q,{quoteApproved:true},'insurance',true);assert.equal(insurance.quoteApproved,false);assert.equal(insurance.quoteDate,'');assert.equal(C.calculate(q,insurance,data,290000,at).lines.find(l=>l.key==='insurance').amount,null);
