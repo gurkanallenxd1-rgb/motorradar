@@ -20,7 +20,7 @@ test('compact cards preserve true ties, distinguish total overrun and disclose u
  await expect(a.locator('.inspection-note')).toHaveText('Kullanıcı notu <script>');
  const missing=page.locator('[data-panel-key="unscored"]');await expect(missing).not.toHaveAttribute('open','');
  await missing.locator('summary').click();await expect(missing).toContainText('kilometre');
- await a.getByRole('button',{name:'Maliyet / Ekspertiz düzenle'}).click();await expect(page.locator('#cost-insurance')).toHaveValue('15000');await page.locator('[data-close="decisionDialog"]').click();
+ await a.locator('[data-panel-decision]').click();await page.locator('#legacyCosts > summary').click();await expect(page.locator('#legacyRows')).toContainText('15.000');await page.locator('#researchDialog .close').click();
  await expect(a.locator('.candidate-detail')).toHaveAttribute('open','');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')))).toEqual(xs);
 });

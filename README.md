@@ -1,4 +1,4 @@
-# MotorRadar 3.7.3 Beta
+# MotorRadar 3.7.4 Beta
 
 Kaynak göstergeleri, manuel/kaynaklı tutar karşılaştırması ve firmaya bağlı gerçek teklifler. [Davranış ve veri koruma notları](docs/3-7-3-akilli-masraf.md). Gerçek iPhone üzerinde henüz test edilmedi.
 
