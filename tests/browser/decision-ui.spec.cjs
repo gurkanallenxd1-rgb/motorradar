@@ -48,7 +48,7 @@ test('panel contrast, accessible controls and photo bytes survive read-only deci
  await seed(page,[rec('a'),rec('b')]);
  await page.evaluate(async()=>{const blob=new Blob(['photo-sentinel'],{type:'image/jpeg'});await MotorPhotoStore.set('a',[{image:blob,thumb:blob}])});
  const snapshot=await page.locator('#smartSelector').ariaSnapshot();expect(snapshot).toContain('spinbutton "Bütçen (TL)"');expect(snapshot).toContain('article "Motor a"');
- await page.locator('.decision-card').first().locator('summary').click();await expect(page.getByLabel('Motor a · Detayı aç')).toBeVisible();
+ await page.locator('.decision-card').first().locator('summary').click();await expect(page.getByLabel('Motor a · Detayları göster')).toBeVisible();
  const contrast=await page.evaluate(()=>{
   const luminance=c=>{const rgb=c.match(/[\d.]+/g).slice(0,3).map(Number).map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4});return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
   return ['#decisionPanel','.decision-caption','.decision-budget','#smartSelector .btn'].map(selector=>{const e=document.querySelector(selector),style=getComputedStyle(e);let bg=e;while(getComputedStyle(bg).backgroundColor==='rgba(0, 0, 0, 0)')bg=bg.parentElement;const a=luminance(style.color),b=luminance(getComputedStyle(bg).backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)});

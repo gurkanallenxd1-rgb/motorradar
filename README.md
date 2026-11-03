@@ -1,3 +1,7 @@
+## MotorRadar 3.6.2 Beta — Yan yana motor karşılaştırması
+
+İki kompakt kart, üç adayda yatay kaydırma, kısa fark etiketleri ve kart başına “Detayları göster”. Hesaplama kuralları ve kayıtlı veriler korunur. [Sürüm notları](docs/3-6-2-yan-yana-karsilastirma.md).
+
 ## MotorRadar 3.6.1 Beta — Karar paneli yenilemesi
 
 Açılır özet, aday kartları ve puan detayları; iPhone için yüksek kontrastlı açık panel. [Kullanım ve veri uyumluluğu](docs/3-6-1-karar-paneli.md).
