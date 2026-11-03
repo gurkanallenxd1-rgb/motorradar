@@ -55,7 +55,7 @@
   const provider=d?.providers.find(s=>s.id===p.providerId);
   const packageAmount=provider&&(!date(provider.validTo)||provider.validTo>=at)&&(!date(provider.validFrom)||provider.validFrom<=at)?provider.amount:null;
   const inspectionConfirmed=p.providerQuoteId===p.providerId&&!!p.providerId&&p.providerQuoteApproved===true&&date(p.providerQuoteDate)&&p.providerQuoteDate<=at&&amount(p.providerQuote);
-  add('inspection','Seçili motosiklet ekspertizi',inspectionConfirmed?p.providerQuote:p.providerId==='custom'?p.inspectionQuote:packageAmount,'estimated',provider,inspectionConfirmed?'Teklif tarihi: '+p.providerQuoteDate+' · seçili firma için kullanıcı onaylı gerçek teklif':provider?'Yayımlanmış fiyat, teyit gerekli. Randevu öncesi fiyat ve hizmet kapsamını teyit edin. '+provider.reason:'Farklı firma için manuel tutar; doğrulanmış teklif onayı yok',inspectionConfirmed?'quote':provider?'published':'manual');
+  add('inspection','Seçili motosiklet ekspertizi',p.providerQuoteApproved===true&&p.providerQuoteId===p.providerId&&!amount(p.providerQuote)?null:inspectionConfirmed?p.providerQuote:p.providerId==='custom'?p.inspectionQuote:packageAmount,'estimated',provider,inspectionConfirmed?'Teklif tarihi: '+p.providerQuoteDate+' · seçili firma için kullanıcı onaylı gerçek teklif':provider?'Yayımlanmış fiyat, teyit gerekli. Randevu öncesi fiyat ve hizmet kapsamını teyit edin. '+provider.reason:'Farklı firma için manuel tutar; doğrulanmış teklif onayı yok',inspectionConfirmed?'quote':provider?'published':'manual');
   for(const [key,label] of [['service','İlk bakım'],['parts','Lastik / zincir / fren'],['other','Diğer masraflar']]){
    const approved=p[key+'Approved']===true;
    add(key,label,approved?p[key]:null,'estimated',null,approved?'Kullanıcı onaylı bütçe gideri':'Kullanıcı onayı gerekli; gerek yoksa 0 girip onaylayın');
@@ -66,7 +66,8 @@
  }
  // Legacy records are read-only evidence, never implicit approvals or budget inputs.
  const legacyTargets={service:'service',parts:'parts',other:'other',insurance:'insuranceQuote',inspection:'inspectionQuote'};
- function expenseState(p,key){return !amount(p[key])?'Girilmedi':p[key+'Approved']===true?'Onaylı · bütçeye dahil':'Tutar mevcut, onay gerekli';}
+ function missingAmount(p,key){const field=key==='insurance'?'insuranceQuote':key==='inspection'?'providerQuote':key,approved=key==='insurance'?p.quoteApproved:key==='inspection'?p.providerQuoteApproved&&p.providerQuoteId===p.providerId:p[key+'Approved'];return approved===true&&!amount(p[field]);}
+ function expenseState(p,key){return !amount(p[key])?(p[key+'Approved']===true?'Tutar eksik':'Girilmedi'):p[key+'Approved']===true?'Onaylı · bütçeye dahil':'Tutar mevcut, onay gerekli';}
  function legacyRows(x,p,d,budget,at=today()){
   const c=calculate(x,p,d,budget,at);
   return Object.entries(S.costFields).filter(([key])=>Object.hasOwn(x.decision?.costs||{},key)).map(([key,label])=>{
@@ -83,5 +84,5 @@
   if(key==='insurance')return {...p,insuranceMode:'quote',insuranceQuote:value,quoteApproved:false,quoteDate:''};
   return {...p,providerId:'custom',inspectionQuote:value,providerQuoteApproved:false};
  }
- const api={expenseState,legacyRows,legacyTransfer,sourceFee,sourceStates,amount,date,today,safeUrl,current,validate,notary,cap,calculate};if(typeof module!=='undefined')module.exports=api;else root.MotorPurchaseCosts=api;
+ const api={missingAmount,expenseState,legacyRows,legacyTransfer,sourceFee,sourceStates,amount,date,today,safeUrl,current,validate,notary,cap,calculate};if(typeof module!=='undefined')module.exports=api;else root.MotorPurchaseCosts=api;
 })(globalThis);
