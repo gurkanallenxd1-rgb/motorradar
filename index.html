@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-apple.png">
-  <title>MotorRadar 3.7.1 Beta</title>
+  <title>MotorRadar 3.7.2 Beta</title>
   <style>
     :root{color-scheme:dark;--bg:#080c15;--panel:#131b2b;--panel2:#192335;--edge:#283448;--text:#eef3ff;--muted:#9eabc1;--accent:#76e2ba;--cyan:#90baf7;--red:#ff8c93;--yellow:#ffe098;--radius:20px}
     *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101b31 0,#080c15 290px);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);min-height:100vh;min-height:100svh}button,input,select,textarea{font:inherit}input,select,textarea{font-size:16px}button{cursor:pointer}a{color:var(--cyan)}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
@@ -60,13 +60,14 @@
     @supports(grid-template-rows:subgrid){.decision-cards{align-items:stretch}.decision-card{display:grid;grid-template-rows:subgrid;grid-row:span 5;row-gap:0}}
       #researchDialog{overflow-wrap:anywhere}#researchDialog small{display:block;line-height:1.7}#researchDialog a{color:#75d8bf}#researchDialog input,#researchDialog select{max-width:100%;min-width:0}#researchDialog select{width:100%;inline-size:100%;display:block;overflow:hidden;text-overflow:ellipsis;max-inline-size:100%}#researchDialog .fields label{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}#researchDialog input[type="date"]{display:block;appearance:none;width:100%;overflow:hidden;min-inline-size:0;max-inline-size:100%}#researchDialog input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left}#researchDialog input[type="date"]::-webkit-datetime-edit{min-width:0;padding:0}#researchDialog .checkrow{display:grid;grid-template-columns:17px minmax(0,1fr);align-items:start}#researchDialog .checkrow input{flex:0 0 17px}#researchDialog .checkrow>span{min-width:0;flex:1;overflow-wrap:anywhere;white-space:normal;margin:0}@media(max-width:600px){#researchDialog .fields{grid-template-columns:minmax(0,1fr)}}.research-summary p{margin:6px 0!important}.research-summary{font-size:12px}
   [data-cost-status="confirmed"]{border-left:3px solid #76e2ba;padding-left:8px}[data-cost-status="estimated"]{border-left:3px solid #ffe098;padding-left:8px}[data-cost-status="unknown"]{border-left:3px solid #ff8c93;padding-left:8px}
-  </style>
+  .cost-card,[data-cost-status]{border:1px solid var(--border,#ccc);border-radius:10px;padding:10px;margin:8px 0;overflow-wrap:anywhere}.cost-source{font-size:.85em;margin-top:6px}.cost-source summary{cursor:pointer}.cost-card .input{max-width:100%}#researchResult [data-cost-status="unknown"]{border-left:4px solid #bd7616}#researchResult [data-cost-status="estimated"]{border-left:4px solid #7272c8}#researchResult [data-cost-status="confirmed"]{border-left:4px solid #29946c}#researchDialog button{white-space:normal;max-width:100%}
+</style>
 </head>
 <body>
   <main class="wrap">
     <header class="top">
-      <div class="brand"><div class="logo" aria-hidden="true">⌁</div><div><small>MotorRadar 3.7.1 Beta</small><h1>MotorRadar<span style="color:var(--accent)">.</span></h1></div></div>
-      <span class="pill">3.7.1 Beta · iPhone uyumlu</span>
+      <div class="brand"><div class="logo" aria-hidden="true">⌁</div><div><small>MotorRadar 3.7.2 Beta</small><h1>MotorRadar<span style="color:var(--accent)">.</span></h1></div></div>
+      <span class="pill">3.7.2 Beta · iPhone uyumlu</span>
     </header>
     <details class="notice" open id="decisionPanel"><summary>Akıllı Karar Sistemi · aç / kapat</summary><section id="smartSelector" aria-label="Akıllı Motor Seçici"></section></details>
     <section class="hero">

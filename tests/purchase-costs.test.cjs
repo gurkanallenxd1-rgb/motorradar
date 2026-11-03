@@ -14,7 +14,7 @@ test('SBM joins exact province/step, never invents missing rows, expired last ve
  assert.equal(C.cap({province:34,step:4},d,'2026-12-01').current,false);d.insurance.access='error';assert.equal(C.cap({province:34,step:4},d,at).current,false);assert.equal(C.cap({province:34,step:4},d,at).amount,5000);
 });
 test('unknowns do not become zeros; R25 MT25 Duke isolated scenarios sum verified sale plus all costs',()=>{
- const p={notaryService:500,registration:1511,providerId:'custom',inspectionQuote:4500,insuranceMode:'quote',insuranceQuote:5000,quoteDate:at,service:2000,serviceApproved:true,parts:0,partsApproved:true,other:0,otherApproved:true};
+ const p={notaryService:500,registration:1511,providerId:'custom',inspectionQuote:4500,insuranceMode:'quote',quoteApproved:true,insuranceQuote:5000,quoteDate:at,service:2000,serviceApproved:true,parts:0,partsApproved:true,other:0,otherApproved:true};
  for(const [model,price] of [['Yamaha R25',240000],['Yamaha MT-25',230000],['KTM Duke 250',220000]]){const x=record(model,price),before=JSON.stringify(x),c=C.calculate(x,p,data,250000,at);assert.equal(c.total,price+14511);assert.equal(c.label,'Tahmini senaryo toplamı');assert.equal(c.remaining,250000-price-14511);assert.equal(JSON.stringify(x),before)}
  assert.equal(C.calculate(record(),{},data,250000,at).total,null);assert.equal(C.calculate(record(),{...p,serviceApproved:false},data,250000,at).total,null);
  assert.equal(C.calculate({...record(),priceVerifiedAt:null},p,data,250000,at).total,null);assert.equal(C.calculate(record(),{...p,insuranceQuote:-5},data,250000,at).total,null);assert.equal(C.calculate(record(),{...p,quoteDate:'2027-01-01'},data,250000,at).total,null);
@@ -31,6 +31,6 @@ test('evidence importer refuses forged documents and leaves validated prices unt
 });
 
 test('decimal expenses use cents and exact budget boundary never reports a zero-value overrun',()=>{
- const p={notaryService:.1,registration:.2,insuranceMode:'quote',insuranceQuote:.3,quoteDate:at,providerId:'custom',inspectionQuote:.4,service:.5,serviceApproved:true,parts:.6,partsApproved:true,other:.7,otherApproved:true};
+ const p={notaryService:.1,registration:.2,insuranceMode:'quote',quoteApproved:true,insuranceQuote:.3,quoteDate:at,providerId:'custom',inspectionQuote:.4,service:.5,serviceApproved:true,parts:.6,partsApproved:true,other:.7,otherApproved:true};
  const c=C.calculate(record(),p,data,241002.8,at);assert.equal(c.total,241002.8);assert.equal(c.remaining,0);assert.equal(C.calculate(record(),p,data,241002.79,at).remaining,-.01);
 });
