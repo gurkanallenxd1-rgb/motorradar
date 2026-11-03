@@ -1,4 +1,8 @@
 const {test,expect}=require('@playwright/test');
+// Page routes cannot intercept requests owned by a service worker in WebKit.
+// These OAuth/API mocks must never fall through to real Google endpoints.
+// Existing safari.spec.cjs continues to exercise the real offline worker.
+test.use({serviceWorkers:'block'});
 const NAME='MotorRadar-Gmail-Guvenli-v2.json';
 const old={id:'legacy',title:'Kendi MT-25 ilanım',model:'Yamaha MT-25',brand:'Yamaha',
  year:2023,price:250000,km:15000,url:'https://www.sahibinden.com/ilan/yamaha-mt25-1339016365/detay',
