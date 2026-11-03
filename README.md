@@ -1,6 +1,17 @@
-# MotorRadar 2.2 — iPhone için motosiklet ilan takip PWA'sı
+# MotorRadar 3.3 Beta — iPhone için motosiklet ilan takip PWA'sı
 
 Bu proje **Sahibinden, Arabam ve diğer ilan sitelerinin resmi API'sine bağlı değildir**. Bu sitelerden otomatik veri çekmez, korumaları aşmaz, fiyatları kendiliğinden güncellemez.
+
+## 3.3: Akıllı ilan yönetimi
+
+- Toplu seçim karşılaştırmadan bağımsızdır. Görünenleri seç veya seçimi temizle; durum değişikliği etkilenecek toplam ilan sayısı gösterilip onaylandıktan sonra kaydedilir. Filtre dışında kalan seçili ilanlar da işleme dahildir. Toplu silme yoktur.
+- Yalnızca durum değişir; fiyat, kilometre, yıl, notlar, favoriler, URL, Gmail bildirimleri, fiyat geçmişi ve son manuel kontrol tarihi korunur. Kaydetme başarısızsa değişiklikler geri alınır ve seçim yeniden denenebilir.
+- Eksik fiyat/model/yıl/km, kontrol edilmemiş kayıtlar ve satılmış/kaldırılmış kayıtları gizleme filtreleri mevcut kaynak, bütçe, favori, arama ve aralık filtreleriyle birlikte çalışır.
+- Kontrol paneli tüm kayıtları sayar. Gmail bütçe sayacı en son tarihli bildirimin fiyatını kullanır (250.000 TL dahil); güncel ilan fiyatını veya aktifliğini doğrulamaz. Manuel fiyat sayacı kayıtlı `price` alanını sayar; canlı güncellik garantisi vermez.
+- `Kontrol ettim` son manuel kontrol tarihini kaydeder. Durum ve fiyat ayrıca kullanıcı tarafından değiştirilir. URL model önerisi ve kullanıcı başlıklarını koruyan mevcut mantık devam eder.
+- `motorradar-v1` depolama anahtarı ve eski JSON yedek formatları korunur. Google Cloud yapılandırması değişmez.
+
+Testler: `npm ci`, `npm test`, `npx playwright install --with-deps chromium webkit`, `npm run test:safari`. Playwright hem Chromium hem iPhone WebKit projelerini çalıştırır; her proje `--project=chromium` veya `--project=iphone-webkit` ile ayrı çalıştırılabilir. Sistemdeki Chromium için `LOCAL_CHROMIUM=1` kullanılabilir. Yeni senaryolar 40 kayıt, iptal, kayıt hatası, seçim ayrımı, eski yedekler, tarihsel fiyatlar ve 320/375/390px ekranları kapsar.
 
 ## Özellikler
 
