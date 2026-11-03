@@ -7,7 +7,7 @@ test('weights warn, persist and update comparison; ties and legacy stay explicit
  await page.locator('#weight-km').fill('10');await expect(page.locator('#weightWarning')).toHaveText('Toplam %100');
  await page.reload();await expect(page.locator('#weight-price')).toHaveValue('70');
  await page.locator('[data-choose="a"]').check();await page.locator('[data-choose="b"]').check();await page.locator('#compareBtn').click();await expect(page.locator('#compareContent')).toContainText('Fiyat 35.0 + km 5.0 + yıl 10.0');await page.locator('[data-close="compareDialog"]').click();
- await page.locator('#decisionPanel > summary').click();await expect(page.locator('#selectorBudget')).toBeHidden();await page.locator('#decisionPanel > summary').click();
+ await page.locator('#decisionPanel > summary').click();await expect(page.locator('#decisionPanel')).not.toHaveAttribute('open','');await expect(page.locator('#selectorBudget')).toBeHidden();await page.locator('#decisionPanel > summary').click();await expect(page.locator('#selectorBudget')).toBeVisible();
 });
 test('per-listing costs calculate live, inspection persists, old data and verification untouched at iPhone widths',async({page})=>{
  await seed(page);const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));
