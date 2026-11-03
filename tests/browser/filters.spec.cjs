@@ -1,10 +1,10 @@
 const {test,expect}=require('@playwright/test');
 test('iPhone: favorites persist, bounds combine and reset preserves sorting',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/');
+ await page.goto('/');await page.locator('#advancedFilters > summary').click();
  const record=(id,price,km)=>({id,title:id,model:'Honda',year:2023,price,km,url:'',history:price===null?[]:[{price,at:'2026-01-01'}],createdAt:'2026-01-01'});
- await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),[record('legacy',240000,10000),record('other',300000,20000),record('unknown',null,null)]);await page.reload();
- const star=page.locator('[data-favorite=legacy]');await expect(star).toHaveAttribute('aria-pressed','false');await star.click();await page.reload();await expect(star).toHaveAttribute('aria-pressed','true');
+ await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),[record('legacy',240000,10000),record('other',300000,20000),record('unknown',null,null)]);await page.reload();await page.locator('#advancedFilters > summary').click();
+ const star=page.locator('[data-favorite=legacy]');await expect(star).toHaveAttribute('aria-pressed','false');await star.click();await page.reload();await page.locator('#advancedFilters > summary').click();await expect(star).toHaveAttribute('aria-pressed','true');
  await page.locator('#favoritesOnly').check();await expect(page.locator('.listing')).toHaveCount(1);
  await page.locator('#maxPrice').fill('240000');await page.locator('#minKm').fill('10000');await page.locator('#maxKm').fill('10000');await expect(page.locator('.listing')).toHaveCount(1);
  await page.locator('#minPrice').fill('240001');await expect(page.locator('.listing')).toHaveCount(0);

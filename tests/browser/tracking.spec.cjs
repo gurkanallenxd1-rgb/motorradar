@@ -1,17 +1,17 @@
 const {test,expect}=require('@playwright/test');
 test('iPhone: manual lifecycle, quick history, backup and narrow layouts',async({page})=>{
  const errors=[],outside=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8000'))outside.push(r.url())});
- await page.goto('/');
+ await page.goto('/');await page.locator('#advancedFilters > summary').click();
  const old={id:'legacy',title:'Eski ilan',model:'Honda',year:2023,price:240000,km:10000,url:'',history:[{price:240000,at:'2026-01-01'}],createdAt:'2026-01-01',custom:'preserve'};
- await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),old);await page.reload();
+ await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),old);await page.reload();await page.locator('#advancedFilters > summary').click();
  const card=page.locator('.listing');await expect(card).toContainText('Kontrol zamanı:');await expect(card).toContainText('Henüz kontrol edilmedi');
- await page.locator('#hideClosed').uncheck();const status=page.locator('[data-status]');for(const value of ['sold','removed','gave_up']){await status.selectOption(value);await expect(card).not.toContainText('Kontrol zamanı:')}
- await status.selectOption('following');await expect(card).toContainText('Kontrol zamanı:');await page.locator('[data-checked]').click();await expect(card).not.toContainText('Kontrol zamanı:');
+ await page.locator('#hideClosed').uncheck();const status=page.locator('[data-status]');await status.evaluate(e=>e.closest('details').open=true);for(const value of ['sold','removed','gave_up']){await status.selectOption(value);await expect(card).not.toContainText('Kontrol zamanı:')}
+ await status.selectOption('following');await expect(card).toContainText('Kontrol zamanı:');await page.locator('[data-checked]').evaluate(e=>{const d=e.closest('details');if(d)d.open=true});await page.locator('[data-checked]').click();await expect(card).not.toContainText('Kontrol zamanı:');
  const data=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));
  const checked=(await data())[0].lastCheckedAt;expect(Date.parse(checked)).toBeGreaterThan(Date.now()-60000);
- for(const [price,length] of [['240000',1],['230000',2],['230000',2],['250000',3]]){await page.locator('[data-price]').click();await page.locator('#quickPrice').fill(price);await page.locator('#quickPriceForm button[type=submit]').click();expect((await data())[0].history).toHaveLength(length)}
- await page.locator('[data-price]').click();await page.locator('#quickPrice').fill('200000');await page.locator('[data-close=priceDialog]').first().click();expect((await data())[0].price).toBe(250000);
- await page.reload();expect((await data())[0]).toMatchObject({status:'following',lastCheckedAt:checked,custom:'preserve'});await expect(card).not.toContainText('Kontrol zamanı:');
- for(const width of [320,375,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('[data-price]').click();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('[data-close=priceDialog]').first().click()}
+ for(const [price,length] of [['240000',1],['230000',2],['230000',2],['250000',3]]){await page.locator('[data-price]').evaluate(e=>{const d=e.closest('details');if(d)d.open=true});await page.locator('[data-price]').click();await page.locator('#quickPrice').fill(price);await page.locator('#quickPriceForm button[type=submit]').click();expect((await data())[0].history).toHaveLength(length)}
+ await page.locator('[data-price]').evaluate(e=>{const d=e.closest('details');if(d)d.open=true});await page.locator('[data-price]').click();await page.locator('#quickPrice').fill('200000');await page.locator('[data-close=priceDialog]').first().click();expect((await data())[0].price).toBe(250000);
+ await page.reload();await page.locator('#advancedFilters > summary').click();expect((await data())[0]).toMatchObject({status:'following',lastCheckedAt:checked,custom:'preserve'});await expect(card).not.toContainText('Kontrol zamanı:');
+ for(const width of [320,375,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('[data-price]').evaluate(e=>{const d=e.closest('details');if(d)d.open=true});await page.locator('[data-price]').click();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('[data-close=priceDialog]').first().click()}
  const before=await data();const downloaded=page.waitForEvent('download');await page.locator('#backupBtn').click();await page.locator('#importFile').setInputFiles(await (await downloaded).path());await expect(page.locator('#importFile')).toHaveValue('');await expect.poll(data).toEqual(before);expect(errors).toEqual([]);expect(outside).toEqual([]);
 });

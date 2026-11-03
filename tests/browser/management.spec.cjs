@@ -1,6 +1,6 @@
 const {test,expect}=require('@playwright/test');
 const record=(id,patch={})=>({id:String(id),title:'Kullanıcı başlığı '+id,model:'Yamaha R25',year:2023,price:240000,km:10000,url:'https://www.sahibinden.com/ilan/yamaha-r25-'+(1234567890+id)+'/detay',notes:'Sakla',history:[{price:240000,at:'2026-01-01'}],createdAt:'2026-01-01',favorite:true,status:'unknown',lastCheckedAt:null,gmailEvents:[{kind:'new_listing',price:250000,observedAt:'2026-01-01'}],custom:{nested:['koru']},...patch});
-async function seed(page,xs){await page.goto('/');await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),xs);await page.reload()}
+async function seed(page,xs){await page.goto('/');await page.locator('#advancedFilters > summary').click();await page.locator('#bulkPanel > summary').click();await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),xs);await page.reload();await page.locator('#advancedFilters > summary').click();await page.locator('#bulkPanel > summary').click()}
 const data=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));
 test('bulk confirmation, hidden selection, comparison, persistence and data safety',async({page})=>{
  const errors=[],outside=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8000'))outside.push(r.url())});
@@ -11,7 +11,7 @@ test('bulk confirmation, hidden selection, comparison, persistence and data safe
  await page.locator('#bulkStatus').selectOption('sold');page.once('dialog',async d=>{expect(d.message()).toContain('12 ilanın');await d.dismiss()});await page.locator('#applyBulk').click();expect(await data(page)).toEqual(xs);
  page.once('dialog',d=>d.accept());await page.locator('#applyBulk').click();await expect(page.locator('#bulkCount')).toHaveText('0');await expect(page.locator('#selectedCount')).toHaveText('3');
  const saved=await data(page);expect(saved).toEqual(xs.map(x=>({...x,status:x.id==='0'||String(x.id).startsWith('3')?'sold':'unknown'})));
- await page.reload();expect(await data(page)).toEqual(saved);await expect(page.locator('#closedStat')).toHaveText('12');expect(errors).toEqual([]);expect(outside).toEqual([]);
+ await page.reload();await page.locator('#advancedFilters > summary').click();await page.locator('#bulkPanel > summary').click();expect(await data(page)).toEqual(saved);await expect(page.locator('#closedStat')).toHaveText('12');expect(errors).toEqual([]);expect(outside).toEqual([]);
 });
 test('storage failure rolls back all selected records and allows retry',async({page})=>{
  const xs=[record(0),record(1)];await seed(page,xs);await page.locator('#selectVisible').click();await page.locator('#bulkStatus').selectOption('removed');
