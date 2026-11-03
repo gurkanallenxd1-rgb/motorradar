@@ -16,6 +16,18 @@ test('single and bulk archive, restore follow, no deletion or metadata loss',asy
  await page.locator('#resetFilters').click();await expect(page.locator('.listing')).toHaveCount(0);await page.reload();expect(await saved(page)).toEqual([{...row,status:'removed'}]);
 });
 
+test('iPhone archive filter stays usable with 78 records and no duplicate visible switch',async({page})=>{
+ const xs=Array.from({length:78},(_,i)=>({...row,id:'long'+i,status:i%2?'removed':'following'}));
+ await page.goto('/');await page.evaluate(records=>localStorage.setItem('motorradar-v1',JSON.stringify(records)),xs);await page.reload();
+ await expect(page.locator('#hideClosed')).toBeVisible();await expect(page.locator('#showArchive')).toBeHidden();
+ await expect(page.locator('.listing')).toHaveCount(39);
+ await page.locator('#hideClosed').scrollIntoViewIfNeeded();await page.locator('#hideClosed').uncheck();
+ await expect(page.locator('.listing')).toHaveCount(78);
+ await page.locator('#hideClosed').check();await expect(page.locator('.listing')).toHaveCount(39);
+ const visible=await page.locator('#hideClosed').evaluate(el=>{const r=el.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight});
+ expect(visible).toBe(true);expect(await saved(page)).toEqual(xs);
+});
+
 test('local optimized photos: gallery, main, replace, download, delete, reload and backup boundaries',async({page})=>{
  const outside=[],errors=[];page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8000')&&!r.url().startsWith('blob:'))outside.push(r.url())});page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());await seed(page);const file=await image(page);
  await expect(page.locator('[data-photo]')).toHaveText('Fotoğraf yok');await page.locator('[data-photos]').click();
