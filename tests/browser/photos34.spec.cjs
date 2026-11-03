@@ -47,7 +47,7 @@ test('OCR preview protects existing values, tags screenshot price and stages a c
  await page.locator('#screenshots').setInputFiles(file);await page.locator('#readScreenshots').click();await expect(page.locator('#ocrPreview')).toContainText('200000');await expect(page.locator('#fPrice')).toHaveValue('');
  await page.locator('#applyOCR').click();await expect(page.locator('#fTitle')).toHaveValue('Doğruladığım başlık');await expect(page.locator('#fPrice')).toHaveValue('200000');
  await page.locator('#screenshotPhoto').click();await expect(page.locator('#photoCrop')).toBeVisible();
- await page.locator('#cropw').fill('100');await page.locator('#croph').fill('100');await page.locator('#saveCrop').click();await expect(page.locator('#photoStatus')).toContainText('tamamını değil');
+ await page.locator('#cropw').fill('100');await page.locator('#croph').fill('100');await page.setViewportSize({width:320,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('#saveCrop').click();await expect(page.locator('#photoStatus')).toContainText('tamamını değil');
  for(const [id,v] of Object.entries({cropx:'10',cropy:'20',cropw:'80',croph:'40'}))await page.locator('#'+id).fill(v);
  await page.locator('#saveCrop').click();await expect(page.locator('#photoGallery img')).toHaveCount(1);await page.locator('[data-close=photoDialog]').click();
  await page.locator('#listingForm button[type=submit]').click();await expect(page.locator('.listing')).toContainText('canlı doğrulanmadı');await expect(page.locator('[data-photo] img')).toBeVisible();
