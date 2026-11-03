@@ -1,6 +1,6 @@
 const {test,expect}=require('@playwright/test');
 const rec=(id,patch={})=>({id,title:'Motor '+id,model:'Yamaha MT-25',year:2024,km:10000,price:240000,verifiedPrice:240000,priceVerifiedAt:'2026-01-01',status:'following',favorite:true,history:[{price:240000,at:'2026-01-01'}],createdAt:'2026-01-01',url:'',custom:{keep:true},...patch});
-async function seed(page,xs){await page.goto('/');await page.locator('#decisionPanel > summary').click();await page.evaluate(xs=>{localStorage.setItem('motorradar-v1',JSON.stringify(xs));localStorage.setItem('motorradar-budget','250000')},xs);await page.reload();await page.locator('#decisionPanel > summary').click()}
+async function seed(page,xs){await page.goto('/');for(const id of ['decisionPanel']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await page.evaluate(xs=>{localStorage.setItem('motorradar-v1',JSON.stringify(xs));localStorage.setItem('motorradar-budget','250000')},xs);await page.reload();for(const id of ['decisionPanel']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()}}
 test('compact cards preserve true ties, distinguish total overrun and disclose user inspection',async({page})=>{
  const xs=[rec('a',{decision:{costs:{insurance:15000},inspection:{checks:{chassis:'Sorun var'},notes:'Kullanıcı notu <script>'}}}),rec('b'),rec('missing',{km:null,priceVerifiedAt:null})];
  await seed(page,xs);
@@ -52,7 +52,7 @@ test('panel contrast, accessible controls and photo bytes survive read-only deci
   return ['#decisionPanel','.decision-caption','.decision-budget','#smartSelector .btn'].map(selector=>{const e=document.querySelector(selector),style=getComputedStyle(e);let bg=e;while(getComputedStyle(bg).backgroundColor==='rgba(0, 0, 0, 0)')bg=bg.parentElement;const a=luminance(style.color),b=luminance(getComputedStyle(bg).backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)});
  });
  for(const ratio of contrast)expect(ratio).toBeGreaterThanOrEqual(4.5);
- await page.locator('[data-panel-key="scoring"] > summary').click();await page.locator('#weight-price').fill('60');await page.locator('#weight-km').fill('20');await page.reload();await page.locator('#decisionPanel > summary').click();
+ await page.locator('[data-panel-key="scoring"] > summary').click();await page.locator('#weight-price').fill('60');await page.locator('#weight-km').fill('20');await page.reload();for(const id of ['decisionPanel']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};
  expect(await page.evaluate(async()=>{const photos=await MotorPhotoStore.get('a');return {length:photos.length,image:await photos[0].image.text(),thumb:await photos[0].thumb.text()}})).toEqual({length:1,image:'photo-sentinel',thumb:'photo-sentinel'});
  await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
  const footer=await page.locator('.footer-bar').boundingBox(),last=await page.locator('.listing').last().boundingBox();expect(last.y+last.height).toBeLessThanOrEqual(footer.y);

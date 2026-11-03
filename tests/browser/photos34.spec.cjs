@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 const row={id:'old',title:'Motorum',brand:'Yamaha',model:'MT-25',year:2023,km:10000,price:240000,status:'following',favorite:true,notes:'Korunacak',lastCheckedAt:null,history:[{price:240000,at:'2026-01-01'}],createdAt:'2026-01-01',url:'',gmailEvents:[{kind:'new_listing',price:200000,observedAt:'2026-01-01'}]};
 const saved=p=>p.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));
-async function seed(page){await page.goto('/');await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),row);await page.reload();await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click()}
+async function seed(page){await page.goto('/');for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),row);await page.reload();for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()}}
 async function image(page){const b64=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=2000;c.height=1500;const x=c.getContext('2d');x.fillStyle='red';x.fillRect(0,0,2000,1500);x.fillStyle='blue';x.fillRect(200,300,1600,600);return c.toDataURL('image/png').split(',')[1]});return {name:'moto.png',mimeType:'image/png',buffer:Buffer.from(b64,'base64')}}
 async function addPhoto(page,file){await page.locator('#photoFile').setInputFiles(file);await expect(page.locator('#photoCrop')).toBeVisible();await page.locator('#saveCrop').click();await expect(page.locator('#photoCrop'),await page.locator('#photoStatus').textContent()).toBeHidden()}
 
@@ -13,12 +13,12 @@ test('single and bulk archive, restore follow, no deletion or metadata loss',asy
  await page.locator('#hideClosed').check();await expect(page.locator('#showArchive')).not.toBeChecked();
  await page.locator('#selectVisible').click();await page.locator('#bulkStatus').selectOption('removed');await page.locator('#applyBulk').click();await expect(page.locator('.listing')).toHaveCount(0);
  await page.locator('#statusFilter').selectOption('removed');await expect(page.locator('.listing')).toHaveCount(1);await expect(page.locator('#showArchive')).toBeChecked();
- await page.locator('#resetFilters').click();await expect(page.locator('.listing')).toHaveCount(0);await page.reload();await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();expect(await saved(page)).toEqual([{...row,status:'removed'}]);
+ await page.locator('#resetFilters').click();await expect(page.locator('.listing')).toHaveCount(0);await page.reload();for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};expect(await saved(page)).toEqual([{...row,status:'removed'}]);
 });
 
 test('iPhone archive filter stays usable with 78 records and no duplicate visible switch',async({page})=>{
  const xs=Array.from({length:78},(_,i)=>({...row,id:'long'+i,status:i%2?'removed':'following'}));
- await page.goto('/');await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();await page.evaluate(records=>localStorage.setItem('motorradar-v1',JSON.stringify(records)),xs);await page.reload();await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();
+ await page.goto('/');for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await page.evaluate(records=>localStorage.setItem('motorradar-v1',JSON.stringify(records)),xs);await page.reload();for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};
  await expect(page.locator('#hideClosed')).toBeVisible();await expect(page.locator('#showArchive')).toBeHidden();
  await expect(page.locator('.listing')).toHaveCount(39);
  await page.locator('#hideClosed').scrollIntoViewIfNeeded();await page.locator('#hideClosed').uncheck();
@@ -40,16 +40,16 @@ test('local optimized photos: gallery, main, replace, download, delete, reload a
  await page.locator('#photoGallery').getByText('Sil',{exact:true}).last().click();await expect(page.locator('#photoGallery img')).toHaveCount(1);
  await page.locator('[data-close=photoDialog]').click();await expect(page.locator('[data-photo] img')).toHaveAttribute('loading','eager');expect(await saved(page)).toEqual([row]);
  const raw=await page.evaluate(()=>localStorage.getItem('motorradar-v1'));expect(raw).not.toContain('base64');expect(raw).not.toContain('blob:');
- await page.reload();await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();await expect(page.locator('[data-photo] img')).toBeVisible();
+ await page.reload();for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await expect(page.locator('[data-photo] img')).toBeVisible();
  for(const width of [320,375,390]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('[data-photos]').evaluate(e=>{const d=e.closest('details');if(d)d.open=true});await page.locator('[data-photos]').click();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('[data-close=photoDialog]').click()}
  expect(errors).toEqual([]);expect(outside).toEqual([]);
 });
 
 test('iPhone card preview paints immediately with 78 listings and survives rerenders',async({page})=>{
  const records=Array.from({length:78},(_,i)=>({...row,id:'card-'+i,title:'Motor '+i}));
- await page.goto('/');await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();
+ await page.goto('/');for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};
  await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),records);
- await page.reload();await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();
+ await page.reload();for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};
  const card=page.locator('[data-photo="card-0"]');
  await expect(card).toHaveText('Fotoğraf yok');
  await page.locator('[data-photos="card-0"]').evaluate(e=>{const d=e.closest('details');if(d)d.open=true});await page.locator('[data-photos="card-0"]').click();
@@ -65,7 +65,7 @@ test('iPhone card preview paints immediately with 78 listings and survives reren
  await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getBoundingClientRect().width>40&&img.getBoundingClientRect().height>40&&img.currentSrc.startsWith('data:image/jpeg;base64,'))).toBe(true);
  await page.locator('#sort').selectOption('cheap');
  await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getBoundingClientRect().width>40&&img.getBoundingClientRect().height>40&&img.currentSrc.startsWith('data:image/jpeg;base64,'))).toBe(true);
- await page.reload();await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();
+ await page.reload();for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};
  await expect.poll(async()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0&&img.getBoundingClientRect().width>40&&img.getBoundingClientRect().height>40&&img.currentSrc.startsWith('data:image/jpeg;base64,'))).toBe(true);
  expect(await saved(page)).toEqual(records);
 });
@@ -79,7 +79,7 @@ test('photo write failure and invalid images preserve existing photos and listin
 });
 
 test('OCR preview protects existing values, tags screenshot price and stages a cropped draft photo',async({page})=>{
- page.on('dialog',d=>d.accept());await page.goto('/');await page.locator('#bulkPanel > summary').click();await page.locator('#advancedFilters > summary').click();await page.locator('#quickAdd > summary').click();const file=await image(page);await page.locator('#addBtn').click();await page.locator('#fTitle').fill('Doğruladığım başlık');
+ page.on('dialog',d=>d.accept());await page.goto('/');for(const id of ['bulkPanel', 'advancedFilters', 'quickAdd']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};const file=await image(page);await page.locator('#addBtn').click();await page.locator('#fTitle').fill('Doğruladığım başlık');
  await page.evaluate(()=>ScreenshotOCR.start=()=>({cancel(){},promise:Promise.resolve({values:{title:'OCR başlık',brand:'Yamaha',model:'MT-25',year:2023,price:200000,km:1000,city:'Ankara'},ambiguous:[]})}));
  await page.locator('#screenshots').setInputFiles(file);await page.locator('#readScreenshots').click();await expect(page.locator('#ocrPreview')).toContainText('200000');await expect(page.locator('#fPrice')).toHaveValue('');
  await page.locator('#applyOCR').click();await expect(page.locator('#fTitle')).toHaveValue('Doğruladığım başlık');await expect(page.locator('#fPrice')).toHaveValue('200000');

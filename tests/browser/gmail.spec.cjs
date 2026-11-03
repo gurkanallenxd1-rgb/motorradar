@@ -4,13 +4,13 @@ test('iPhone: Gmail v2 preview and non-destructive import',async({page})=>{
  page.on('pageerror',e=>errors.push(e.message));
  page.on('dialog',d=>d.accept());
  page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8000'))outside.push(r.url())});
- await page.goto('/');await page.locator('#advancedFilters > summary').click();
+ await page.goto('/');for(const id of ['advancedFilters']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};
  const old={id:'legacy',title:'Kendi MT-25 ilanım',model:'Yamaha MT-25',brand:'Yamaha',
   year:2023,price:250000,km:15000,url:'https://www.sahibinden.com/ilan/yamaha-mt25-1339016365/detay',
   history:[{price:250000,at:'2026-09-01'}],createdAt:'2026-09-01',
   favorite:true,status:'sold',notes:'Özel ekspertiz notu'};
  await page.evaluate(x=>localStorage.setItem('motorradar-v1',JSON.stringify([x])),old);
- await page.reload();await page.locator('#advancedFilters > summary').click();await page.locator('#hideClosed').uncheck();
+ await page.reload();for(const id of ['advancedFilters']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await page.locator('#hideClosed').uncheck();
  const event=(url,price,at)=>({kind:'price_drop',url,listingId:url.match(/\d{9,}/)[0],
    oldPrice:price+1000,newPrice:price,price,observedAt:at,title:'Acil MT-25',
    brand:'Yamaha',model:'Yamaha MT-25',year:null,km:null});

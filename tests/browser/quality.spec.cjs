@@ -4,7 +4,7 @@ test('iPhone: Gmail cleanup, status/source filters and email timeline preserve u
  page.on('pageerror',e=>errors.push(e.message));
  page.on('dialog',d=>d.accept());
  page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8000'))outside.push(r.url())});
- await page.goto('/');await page.locator('#advancedFilters > summary').click();
+ await page.goto('/');for(const id of ['advancedFilters']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};
  const event=(price,date)=>({kind:'price_drop',oldPrice:price+1000,newPrice:price,price,
   observedAt:date,url:'https://www.sahibinden.com/ilan/vasita-motosiklet-yamaha-mt25-1338808674/detay'});
  const imported={id:'mail',title:'<http://www.sahibinden.com/ilan/vasita-motosiklet-yamaha-mt25-1338808674/detay/>',
@@ -15,7 +15,7 @@ test('iPhone: Gmail cleanup, status/source filters and email timeline preserve u
   price:250000,url:'',notes:'Elle girildi',status:'following',favorite:false,
   createdAt:'2026-11-01T01:00:00Z',history:[{price:250000,at:'2026-11-01T01:00:00Z'}]};
  await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),[imported,manual]);
- await page.reload();await page.locator('#advancedFilters > summary').click();
+ await page.reload();for(const id of ['advancedFilters']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};
  await expect(page.locator('.listing')).toHaveCount(2);
  await expect(page.locator('#gmailCount')).toHaveText('1');
  await expect(page.locator('#unknownCount')).toHaveText('1');
