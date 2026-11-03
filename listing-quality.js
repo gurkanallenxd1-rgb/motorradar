@@ -52,6 +52,16 @@
       e&&typeof e.observedAt==='string'&&!Number.isNaN(Date.parse(e.observedAt))):[];
     return events.reduce((latest,e)=>!latest||Date.parse(e.observedAt)>Date.parse(latest.observedAt)?e:latest,null);
   }
+  function notificationPrice(x) {
+    const event=latestEvent(x);
+    if(!event)return null;
+    const price=event.kind==='price_drop'?event.newPrice:event.price;
+    return Number.isFinite(price)&&price>0&&price<=1000000000?price:null;
+  }
+  function lastNotificationTime(x) {
+    const at=latestEvent(x)?.observedAt;
+    return at ? Date.parse(at) : 0;
+  }
   function isGmail(x) {return Array.isArray(x?.gmailEvents)&&x.gmailEvents.length>0;}
   function matches(x,scope,status) {
     if(scope==='gmail'&&!isGmail(x))return false;
@@ -84,7 +94,7 @@
     });
     return {items,changed,titleFixed,modelFixed,examples};
   }
-  const api={inferredModel,modelLabel,titleLabel,latestEvent,isGmail,matches,cleanup};
+  const api={inferredModel,modelLabel,titleLabel,latestEvent,notificationPrice,lastNotificationTime,isGmail,matches,cleanup};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   else root.MotorListingQuality=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
