@@ -19,5 +19,5 @@ async function collect(data,policy,request=fetch){
  }
  return {checkedAt:C.today(),automaticPriceUpdates:false,items};
 }
-if(require.main===module)collect(require('../data/cost-sources.json'),require('../data/cost-access-policy.json')).then(report=>{fs.mkdirSync('work',{recursive:true});fs.writeFileSync('work/cost-research.json',JSON.stringify(report,null,2));console.log('Kaynak araştırması tamamlandı; fiyatlar ve doğrulama tarihleri değiştirilmedi.')}).catch(()=>{process.exitCode=1});
+if(require.main===module)collect(require('../data/cost-sources.json'),require('../data/cost-access-policy.json')).then(report=>{fs.mkdirSync('work',{recursive:true});fs.writeFileSync('work/cost-research.json',JSON.stringify(report,null,2));console.log('Kaynak inceleme raporu: '+report.items.filter(s=>s.status==='blocked-by-policy').length+' kaynak izin nedeniyle atlandı; '+report.items.filter(s=>s.status==='review-required').length+' belge inceleme bekliyor. Otomatik fiyat güncellemesi yapılmadı.')}).catch(()=>{process.exitCode=1});
 module.exports={collect};
