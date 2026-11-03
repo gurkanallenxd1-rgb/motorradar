@@ -1,9 +1,60 @@
 {
   "schemaVersion": 1,
   "sources": [
-    {"id":"notary-2026","automatedAccess":false,"reason":"Mevzuat ve işlem istisnaları insan incelemesi gerektirir; otomatik erişim izni doğrulanmadı."},
-    {"id":"sbm-2026-11","automatedAccess":false,"reason":"PDF erişimi ve otomatik yeniden kullanım koşulları doğrulanamadı."},
-    {"id":"yamanlar-alibeykoy","automatedAccess":false,"reason":"502; robots ve kullanım koşulları değerlendirilmeden periyodik istek gönderilmez."},
-    {"id":"yamanlar-cekmekoy","automatedAccess":false,"reason":"502; robots ve kullanım koşulları değerlendirilmeden periyodik istek gönderilmez."}
+    {
+      "id": "notary-2026",
+      "automatedAccess": false,
+      "reason": "Mevzuat ve işlem istisnaları insan incelemesi gerektirir; otomatik erişim izni doğrulanmadı."
+    },
+    {
+      "id": "sbm-2026-11",
+      "automatedAccess": false,
+      "reason": "PDF erişimi ve otomatik yeniden kullanım koşulları doğrulanamadı."
+    },
+    {
+      "id": "yamanlar-alibeykoy",
+      "automatedAccess": false,
+      "reason": "502; robots ve kullanım koşulları değerlendirilmeden periyodik istek gönderilmez."
+    },
+    {
+      "id": "yamanlar-cekmekoy",
+      "automatedAccess": false,
+      "reason": "502; robots ve kullanım koşulları değerlendirilmeden periyodik istek gönderilmez."
+    },
+    {
+      "id": "atolye-light",
+      "automatedAccess": false,
+      "reason": "Yayına erişildi; periyodik otomatik erişim ve yeniden kullanım koşulları doğrulanmadı. İnsan inceleme kuyruğu."
+    },
+    {
+      "id": "motocv-eko1",
+      "automatedAccess": false,
+      "reason": "Yayına erişildi; periyodik otomatik erişim ve yeniden kullanım koşulları doğrulanmadı. İnsan inceleme kuyruğu."
+    },
+    {
+      "id": "motocv-eko2",
+      "automatedAccess": false,
+      "reason": "Yayına erişildi; periyodik otomatik erişim ve yeniden kullanım koşulları doğrulanmadı. İnsan inceleme kuyruğu."
+    },
+    {
+      "id": "motocv-standard",
+      "automatedAccess": false,
+      "reason": "Yayına erişildi; periyodik otomatik erişim ve yeniden kullanım koşulları doğrulanmadı. İnsan inceleme kuyruğu."
+    },
+    {
+      "id": "motocv-plus",
+      "automatedAccess": false,
+      "reason": "Yayına erişildi; periyodik otomatik erişim ve yeniden kullanım koşulları doğrulanmadı. İnsan inceleme kuyruğu."
+    },
+    {
+      "id": "notary-service",
+      "automatedAccess": false,
+      "reason": "Resmî PDF insan incelemesiyle doğrulandı; tarife ve işlem istisnaları için otomatik yeniden yayın izni doğrulanmadı."
+    },
+    {
+      "id": "registration",
+      "automatedAccess": false,
+      "reason": "Resmî PDF insan incelemesiyle doğrulandı; tarife ve işlem istisnaları için otomatik yeniden yayın izni doğrulanmadı."
+    }
   ]
 }

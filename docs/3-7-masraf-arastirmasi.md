@@ -25,7 +25,7 @@ Manuel doğrulama alternatifi:
 
 ## Cihaz verisi ve eski özellikler
 
-Araştırma yalnız `motorradar-costs-v37` tercihini kullanıcı değişiklik yaptığında yazar. Açma/okuma/araştırma otomatik olarak `motorradar-v1`, `motorradar-budget`, Drive, IndexedDB fotoğrafları veya mevcut JSON yedeklerini değiştirmez. Migration yok. Yeni senaryolar eski JSON yedeğine eklenmez; cihaz tarayıcı depolaması temizlenirse kaybolur. Eski Maliyet/Ekspertiz ekranı, kontrol listesi ve kullanıcı girişleri korunur; kart bütçesi yeni kaynaklı senaryoyu kullanır. Eski manuel kalemler otomatik onaylanmaz.
+Araştırma yalnız `motorradar-costs-v37` tercihini kullanıcı değişiklik yaptığında yazar. Açma/okuma/araştırma otomatik olarak `motorradar-v1`, `motorradar-budget`, Drive, IndexedDB fotoğrafları veya mevcut JSON yedeklerini değiştirmez. Migration yok. 3.7.1 ile senaryolar JSON yedeğine eklenir; eski yedekler senaryoları değiştirmez. Fotoğraflar JSON kapsamı dışındadır. [Güncel akış](3-7-1-masraf-tamamlama.md). Eski Maliyet/Ekspertiz ekranı, kontrol listesi ve kullanıcı girişleri korunur; kart bütçesi yeni kaynaklı senaryoyu kullanır. Eski manuel kalemler otomatik onaylanmaz.
 
 Kartlarda kesinleşen, tahmini ve bilinmeyen kalemler ayrılır. Eksik tutar sıfır değildir: yalnız eksik kalemli ara toplam gösterilir. Paket/tavan/kullanıcı bakım gideri olan tam hesap bile tahmini senaryo toplamıdır. Yan yana farklarda tam toplam bilinmiyorsa yalnız bilinen ek gider farkı açık etiketle verilir.
 

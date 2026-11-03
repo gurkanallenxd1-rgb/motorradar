@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-apple.png">
-  <title>MotorRadar 3.7 Beta</title>
+  <title>MotorRadar 3.7.1 Beta</title>
   <style>
     :root{color-scheme:dark;--bg:#080c15;--panel:#131b2b;--panel2:#192335;--edge:#283448;--text:#eef3ff;--muted:#9eabc1;--accent:#76e2ba;--cyan:#90baf7;--red:#ff8c93;--yellow:#ffe098;--radius:20px}
     *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101b31 0,#080c15 290px);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);min-height:100vh;min-height:100svh}button,input,select,textarea{font:inherit}input,select,textarea{font-size:16px}button{cursor:pointer}a{color:var(--cyan)}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
@@ -58,21 +58,22 @@
     @media(max-width:700px){.decision-card{padding:10px}.decision-cards{gap:8px}:is(#smartSelector,#compareContent) .decision-card h3{font-size:14px}.decision-card-head p{font-size:12px}.decision-budget{padding:8px;font-size:12px}.decision-facts dd{font-size:15px}.decision-advantages{align-content:start}.decision-score strong{font-size:24px}.decision-card .btn{padding:10px 6px}}
     #compareContent{padding:12px;overflow-wrap:anywhere}#compareDialog{max-width:min(900px,calc(100vw - 22px))}#compareDialog .dialog-content{padding:12px}#compareContent details:not([open])>:not(summary){display:none}
     @supports(grid-template-rows:subgrid){.decision-cards{align-items:stretch}.decision-card{display:grid;grid-template-rows:subgrid;grid-row:span 5;row-gap:0}}
-      #researchDialog{overflow-wrap:anywhere}#researchDialog small{display:block;line-height:1.7}#researchDialog a{color:#75d8bf}#researchDialog input,#researchDialog select{max-width:100%;min-width:0}#researchDialog select{display:block;overflow:hidden;text-overflow:ellipsis;max-inline-size:100%}#researchDialog .fields label{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}#researchDialog input[type="date"]{display:block;appearance:none;width:100%;overflow:hidden;min-inline-size:0;max-inline-size:100%}#researchDialog input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left}#researchDialog input[type="date"]::-webkit-datetime-edit{min-width:0;padding:0}#researchDialog .checkrow{display:grid;grid-template-columns:17px minmax(0,1fr);align-items:start}#researchDialog .checkrow input{flex:0 0 17px}#researchDialog .checkrow>span{min-width:0;flex:1;overflow-wrap:anywhere;white-space:normal;margin:0}@media(max-width:600px){#researchDialog .fields{grid-template-columns:minmax(0,1fr)}}.research-summary p{margin:6px 0!important}.research-summary{font-size:12px}
+      #researchDialog{overflow-wrap:anywhere}#researchDialog small{display:block;line-height:1.7}#researchDialog a{color:#75d8bf}#researchDialog input,#researchDialog select{max-width:100%;min-width:0}#researchDialog select{width:100%;inline-size:100%;display:block;overflow:hidden;text-overflow:ellipsis;max-inline-size:100%}#researchDialog .fields label{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}#researchDialog input[type="date"]{display:block;appearance:none;width:100%;overflow:hidden;min-inline-size:0;max-inline-size:100%}#researchDialog input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left}#researchDialog input[type="date"]::-webkit-datetime-edit{min-width:0;padding:0}#researchDialog .checkrow{display:grid;grid-template-columns:17px minmax(0,1fr);align-items:start}#researchDialog .checkrow input{flex:0 0 17px}#researchDialog .checkrow>span{min-width:0;flex:1;overflow-wrap:anywhere;white-space:normal;margin:0}@media(max-width:600px){#researchDialog .fields{grid-template-columns:minmax(0,1fr)}}.research-summary p{margin:6px 0!important}.research-summary{font-size:12px}
+  [data-cost-status="confirmed"]{border-left:3px solid #76e2ba;padding-left:8px}[data-cost-status="estimated"]{border-left:3px solid #ffe098;padding-left:8px}[data-cost-status="unknown"]{border-left:3px solid #ff8c93;padding-left:8px}
   </style>
 </head>
 <body>
   <main class="wrap">
     <header class="top">
-      <div class="brand"><div class="logo" aria-hidden="true">⌁</div><div><small>MotorRadar 3.7 Beta</small><h1>MotorRadar<span style="color:var(--accent)">.</span></h1></div></div>
-      <span class="pill">3.7 Beta · iPhone uyumlu</span>
+      <div class="brand"><div class="logo" aria-hidden="true">⌁</div><div><small>MotorRadar 3.7.1 Beta</small><h1>MotorRadar<span style="color:var(--accent)">.</span></h1></div></div>
+      <span class="pill">3.7.1 Beta · iPhone uyumlu</span>
     </header>
     <details class="notice" open id="decisionPanel"><summary>Akıllı Karar Sistemi · aç / kapat</summary><section id="smartSelector" aria-label="Akıllı Motor Seçici"></section></details>
     <section class="hero">
       <div class="eyebrow">KİŞİSEL MOTOR RADARIN</div>
       <h2>İlanları kaçırma.<br>Fiyatları karşılaştır.</h2>
       <p>Sahibinden ve diğer platformlardaki motor ilanlarını kendi listende sakla. Fiyat güncellediğinde değişim geçmişini gör.</p>
-      <p class="details">JSON yedeği fotoğrafları içermez. Fotoğraflar ekranındaki İndir ile ayrıca sakla.</p><div class="hero-actions"><button class="btn primary" id="addBtn">＋ Yeni ilan ekle</button><button class="btn light" id="backupBtn">⇩ Verileri yedekle</button></div>
+      <p class="details">JSON yedeği fotoğrafları içermez. Fotoğraflar ekranındaki İndir ile ayrıca sakla.</p><div class="hero-actions"><button class="btn primary" id="addBtn">＋ Yeni ilan ekle</button><button class="btn light" id="backupBtn">⇩ Verileri yedekle</button><button class="btn" id="recoveryBackupBtn" hidden>İçe aktarma öncesi yedeği indir</button></div>
     </section>
     <section class="notice" aria-labelledby="quickTitle">
       <h2 id="quickTitle">Bağlantıyla kolay ilan ekle</h2>
@@ -188,7 +189,7 @@
   <script src="drive-sync.js"></script>
   <script src="listing-quality.js"></script>
   <script src="analysis.js"></script><script src="selector.js"></script>
-  <script src="purchase-costs.js"></script><script src="purchase-costs-ui.js"></script>
+  <script src="purchase-costs.js"></script><script src="backup.js"></script><script src="purchase-costs-ui.js"></script>
   <script src="ocr-parser.js"></script>
   <script src="vendor/ocr/tesseract.min.js"></script>
   <script src="screenshot-ocr.js"></script>
@@ -368,8 +369,28 @@
       if(!persist()){items=previous;return;}
       render();alert(plan.changed+' Gmail kaydı düzeltildi. Düzeltme öncesi JSON yedeğini güvenli sakla.');
     };
-    $('backupBtn').title='JSON yedeği fotoğrafları içermez; fotoğrafları ayrıca İndir ile sakla';$('backupBtn').onclick=()=>download('motorradar-yedek-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({app:'MotorRadar',version:'3.6',exportedAt:new Date().toISOString(),listings:items},null,2),'application/json');
-    $('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async(e)=>{const file=e.target.files?.[0];if(!file)return;if(file.size>5*1024*1024){alert('Yedek dosyası 5 MB altında olmalı.');return}try{const d=JSON.parse(await file.text());if(d?.app!=='MotorRadar'||!Array.isArray(d.listings)||d.listings.length>10000||!d.listings.every(validListing)){throw Error('Geçersiz yedek dosyası')}if(!confirm(`${d.listings.length} ilan içe aktarılacak. Mevcut kayıtların üzerine yazılsın mı?`))return;const restored=[];for(const x of d.listings){if(restored.some(y=>y.id===x.id)||duplicate(x,restored))throw Error('Tekrarlanan ilan');restored.push(withFavorite(x))}const previous=items;items=restored;if(!persist()){items=previous;return}selected.clear();bulkSelected.clear();render();alert('Yedek yüklendi.')}catch{alert('Geçersiz veya bozuk MotorRadar yedeği.')}finally{e.target.value=''}};
+    $('backupBtn').title='JSON yedeği masraf senaryolarını içerir; fotoğrafları ayrıca İndir ile sakla';
+    $('backupBtn').onclick=()=>{try{download('motorradar-yedek-'+MotorPurchaseCosts.today()+'.json',JSON.stringify(MotorBackup.snapshot(items,localStorage),null,2),'application/json')}catch{alert('Yedek hazırlanamadı; mevcut veriler korundu.')}};
+    if(globalThis.MotorBackup){$('recoveryBackupBtn').hidden=!localStorage.getItem(MotorBackup.RECOVERY);$('recoveryBackupBtn').onclick=()=>download('motorradar-ice-aktarma-oncesi.json',localStorage.getItem(MotorBackup.RECOVERY),'application/json')}
+    $('importBtn').onclick=()=>$('importFile').click();
+    $('importFile').onchange=async(e)=>{
+      const file=e.target.files?.[0];if(!file)return;
+      try{
+        if(file.size>5*1024*1024)throw Error('Yedek dosyası 5 MB altında olmalı.');
+        const expected={listings:localStorage.getItem(STORE),costs:localStorage.getItem(MotorBackup.COSTS)};
+        const storedListings=JSON.parse(expected.listings||'[]');if(!Array.isArray(storedListings)||!storedListings.every(validListing))throw Error('Mevcut kayıtlar okunamadı; aktarım durduruldu.');
+        const existing=storedListings.map(withFavorite);
+        const plan=MotorBackup.preview(((d)=>({...d,listings:Array.isArray(d.listings)?d.listings.map(withFavorite):d.listings}))(JSON.parse(await file.text())),existing,JSON.parse(expected.costs||'{}'),validListing,duplicate);
+        let dialog=$('backupPreview');if(!dialog){dialog=document.createElement('dialog');dialog.id='backupPreview';document.body.append(dialog)}
+        dialog.innerHTML=`<div class="dialog-head"><h2>Yedek önizlemesi</h2><button class="close" aria-label="Kapat">×</button></div><div class="dialog-content"><p>${plan.added} yeni ilan · ${plan.updated} eşleşen ilan güncellenecek · ${plan.kept} mevcut ilan korunacak.</p><p>${plan.scenarioCount} masraf senaryosu aktarılacak. ${plan.legacy?'Eski yedek: mevcut masraf senaryoları korunur.':'Eşleşen senaryolar güncellenir; diğer senaryolar korunur.'}</p><p>Fotoğraflar JSON yedeğine dahil değildir. Cihazdaki fotoğraflar korunur.</p><button class="btn" id="beforeImportBackup">Önce mevcut verilerin ayrı yedeğini indir</button><label class="checkrow"><input type="checkbox" id="backupConsent"><span>Önizlemeyi inceledim, eşleşen kayıtların güncellenmesini onaylıyorum.</span></label><button class="btn primary" id="applyBackup" disabled>Onayla ve içe aktar</button><p id="backupStatus" role="status"></p></div>`;
+        let backedUp=false;const enable=()=>$('applyBackup').disabled=!(backedUp&&$('backupConsent').checked);
+        dialog.querySelector('.close').onclick=()=>dialog.close();
+        $('beforeImportBackup').onclick=()=>{try{download('motorradar-ice-aktarma-oncesi-'+MotorPurchaseCosts.today()+'.json',JSON.stringify(MotorBackup.snapshot(existing,{getItem:()=>expected.costs}),null,2),'application/json');backedUp=true;enable()}catch{$('backupStatus').textContent='Önceki veriler yedeklenemedi; aktarım durduruldu.'}};
+        $('backupConsent').onchange=enable;
+        $('applyBackup').onclick=()=>{try{MotorBackup.apply(plan,localStorage,expected);items=plan.listings.map(withFavorite);$('recoveryBackupBtn').hidden=false;MotorCostResearch.reloadPreferences();selected.clear();bulkSelected.clear();render();dialog.close();alert('Yedek birleştirildi. Mevcut ilanlar ve fotoğraflar korundu.')}catch(err){$('backupStatus').textContent=err.message}};
+        dialog.showModal();
+      }catch(err){alert('Yedek yüklenemedi: '+err.message)}finally{e.target.value=''}
+    };
 
     function decisionSummary(x){const c=MotorSelector.costs(x,selectorBudget);return c.total===null?'Toplam hesaplanamadı: fiyat doğrulaması veya geçerli gider gerekli.':`Önceki manuel ara toplam: ${money(c.total)} · ${c.remaining<0?'Bütçe aşıldı: '+money(-c.remaining):'Bütçeden kalan: '+money(c.remaining)}`;}
     function openDecision(id){

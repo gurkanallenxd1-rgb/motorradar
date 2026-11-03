@@ -14,7 +14,7 @@
   }
   if(!['www.resmigazete.gov.tr','resmigazete.gov.tr','www.gib.gov.tr','gib.gov.tr'].includes(new URL(d.notary.sourceUrl).hostname)||!['sbm.org.tr','www.sbm.org.tr'].includes(new URL(d.insurance.sourceUrl).hostname))throw Error('Resmî kaynak alan adı gerekli');
   if(d.notary.rate!==.002||d.notary.minimum!==1000)throw Error('Mevzuat değişikliği kod incelemesi gerektirir');
-  const seen=new Set();for(const r of d.insurance.rows){const key=r.province+':'+r.step;if(!Number.isInteger(r.province)||r.province<1||r.province>81||!Number.isInteger(r.step)||r.step<0||r.step>8||(!amount(r.amount)||r.amount<=0)||seen.has(key))throw Error('Geçersiz SBM satırı');seen.add(key)}
+  const seen=new Set();for(const r of d.insurance.rows){const key=r.province+':'+r.step+':'+(r.vehicleClass||'motorcycle')+':'+(r.usageProfile||'private-other-no-disability');if(!Number.isInteger(r.province)||r.province<1||r.province>81||!Number.isInteger(r.step)||r.step<0||r.step>8||(!amount(r.amount)||r.amount<=0)||seen.has(key))throw Error('Geçersiz SBM satırı');if(r.sourceUrl&&(!safeUrl(r.sourceUrl)||!['sbm.org.tr','www.sbm.org.tr','mkt.sbm.org.tr'].includes(new URL(r.sourceUrl).hostname)||!date(r.validFrom)||!date(r.validTo)||!date(r.verifiedAt)||r.validFrom>r.validTo||!['motorcycle','cargo-motorcycle'].includes(r.vehicleClass)||!['private-other-no-disability','corporate-other-no-disability','private-electric-no-disability'].includes(r.usageProfile)))throw Error('Geçersiz SBM satır kaynağı veya profili');seen.add(key)}
   if(d.providers.some(p=>p.motorcycleVerified!==true||!p.id||!p.location||!p.scope)||new Set(d.providers.map(p=>p.id)).size!==d.providers.length)throw Error('Doğrulanmış motosiklet hizmeti gerekli');
   return d;
  }
@@ -24,16 +24,16 @@
   return amount(price)&&price>0?Math.max(1000,Math.round(price*.002*100)/100):null;
  }
  function cap(p,d,at=today()){
-  const s=d?.insurance,r=p.province!==undefined&&p.province!==''&&p.step!==undefined&&p.step!==''?s?.rows.find(r=>r.province===Number(p.province)&&r.step===Number(p.step)):undefined;
-  return {amount:r?.amount??null,current:current(s,at),source:s};
+  const s=d?.insurance,r=p.province!==undefined&&p.province!==''&&p.step!==undefined&&p.step!==''?s?.rows.find(r=>r.province===Number(p.province)&&r.step===Number(p.step)&&(r.vehicleClass||'motorcycle')===(p.vehicleClass||'motorcycle')&&(r.usageProfile||'private-other-no-disability')===(p.usageProfile||'private-other-no-disability')):undefined;
+  return {amount:r?.amount??null,current:current(s,at)&&(!r?.sourceUrl||current({...s,...r},at)),source:r?.sourceUrl?{...s,...r}:s};
  }
  function calculate(x,p={},d=null,budget=250000,at=today()){
   const lines=[],add=(key,label,value,status,source=null,note='')=>lines.push({key,label,amount:amount(value)?value:null,status:amount(value)?status:'unknown',source,note});
   add('sale','Doğrulanmış satış fiyatı',S.verifiedPrice(x),'confirmed',null,x.priceVerifiedAt||'');
-  add('duty','Satış / devir harcı',notary(S.verifiedPrice(x),p,d,at),'confirmed',d?.notary);
-  for(const [key,label,src] of [['notaryService','Noter işlem bedeli',d?.notaryService],['registration','Ruhsat / tescil belgesi',d?.registration]])add(key,label,amount(p[key])?p[key]:src?.amount,p[key]!==undefined?'estimated':current(src,at)?'confirmed':'estimated',src,p[key]!==undefined?'Kullanıcı senaryosu':src?.reason);
+  add('duty','Satış / devir harcı',notary(S.verifiedPrice(x),p,d,at),'confirmed',d?.notary,'Harç matrahı kasko değerinin altında olamaz; noterle teyit edin.');
+  for(const [key,label,src] of [['notaryService','Noter işlem bedeli',d?.notaryService],['registration','Ruhsat / tescil belgesi',d?.registration]])add(key,label,amount(p[key])?p[key]:(current(src,at)?src.amount:null),p[key]!==undefined?'estimated':current(src,at)?'confirmed':'estimated',src,p[key]!==undefined?'Kullanıcı senaryosu':src?.reason);
   const insurance=cap(p,d,at);
-  add('insurance',p.insuranceMode==='quote'?'Kullanıcının aldığı gerçek sigorta teklifi':'SBM resmî tavan primi · teklif değildir',p.insuranceMode==='quote'?(date(p.quoteDate)&&p.quoteDate<=at?p.insuranceQuote:null):insurance.amount,'estimated',p.insuranceMode==='quote'?null:insurance.source,p.insuranceMode==='quote'?(date(p.quoteDate)?'Teklif tarihi: '+p.quoteDate:'Teklif tarihi eksik'):(insurance.current?'Gerçek prim farklı olabilir':'Tarife güncel değil / doğrulanamadı'));
+  add('insurance',p.insuranceMode==='quote'?'Kullanıcının aldığı gerçek sigorta teklifi':'SBM resmî tavan primi · teklif değildir',p.insuranceMode==='quote'?(date(p.quoteDate)&&p.quoteDate<=at?p.insuranceQuote:null):(insurance.current?insurance.amount:null),'estimated',p.insuranceMode==='quote'?null:insurance.source,p.insuranceMode==='quote'?(date(p.quoteDate)?'Teklif tarihi: '+p.quoteDate:'Teklif tarihi eksik'):(insurance.current?'Gerçek prim farklı olabilir':'Tarife güncel değil / doğrulanamadı'));
   const provider=d?.providers.find(s=>s.id===p.providerId);
   add('inspection','Seçili motosiklet ekspertizi',p.providerId==='custom'?p.inspectionQuote:provider?.amount,'estimated',provider,provider?.reason||'Kullanıcının seçtiği firma / teklif');
   for(const [key,label] of [['service','İlk bakım'],['parts','Lastik / zincir / fren'],['other','Diğer masraflar']]){
