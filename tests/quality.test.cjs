@@ -50,3 +50,15 @@ test('Gmail source and unknown status filtering is explicit',()=>{
  assert.equal(q.matches(x,'manual','unknown'),false);
  assert.equal(q.matches({...x,status:'sold'},'gmail','unknown'),false);
 });
+
+test('historical Gmail budget uses latest notification, not current price',()=>{
+ const x=example();
+ assert.equal(q.notificationPrice(x),273000);
+ assert.equal(q.lastNotificationTime(x),Date.parse('2026-10-18T08:00:00Z'));
+ x.gmailEvents.push({...x.gmailEvents[0],newPrice:235000,price:235000,observedAt:'2026-11-01T08:00:00Z'});
+ assert.equal(q.notificationPrice(x),235000);
+ assert.equal(x.price,null);
+ const empty={...x,gmailEvents:[]};
+ assert.equal(q.notificationPrice(empty),null);
+ assert.equal(q.lastNotificationTime(empty),0);
+});
