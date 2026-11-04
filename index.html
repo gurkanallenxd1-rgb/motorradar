@@ -80,6 +80,12 @@ body{background:var(--bg)}.hero{background:#252e37;border-color:var(--edge)}.log
 
 .filter-panel{border:1px solid var(--edge);border-radius:14px;margin:12px 0;padding:0 12px}.filter-panel>summary,.bulk-bar>summary,#quickAdd>summary{min-height:48px;align-content:center;font-weight:600;cursor:pointer}.filter-panel[open]>.range-filters{margin-top:12px}.bulk-bar{background:var(--panel);box-shadow:none}.stats{margin:16px 0}.hero{margin-top:16px;padding:18px}.hero h2{font-size:26px}.hero-actions{margin-top:14px}.listing-more .btn{margin:4px 0}.listing-note{white-space:pre-wrap}
 .comparison-status{display:grid;gap:6px;margin:12px 0;color:#ddc491;font-size:12px}
+
+/* A stable sheet avoids WebKit relayout while switching between short and long tabs. */
+#researchDialog{height:90vh;height:90svh;overflow:hidden}
+#researchDialog .dialog-head{height:76px;padding:14px 16px}
+#researchDialog .dialog-content{height:calc(100% - 76px);max-height:none;overflow:auto;overscroll-behavior:contain}
+#researchDialog .purchase-tabs{position:sticky;top:0;z-index:2;background:var(--panel);padding-top:8px}
 </style>
 </head>
 <body>
