@@ -1,15 +1,15 @@
 const {test,expect}=require('@playwright/test');
 const rec=(id,patch={})=>({id,title:'Motor '+id,model:'Yamaha MT-25',price:240000,year:2024,km:10000,status:'following',notes:'koru',favorite:true,history:[{price:240000,at:'2026-01-01'}],createdAt:'2026-01-01',url:'',...patch});
-async function seed(page,xs){await page.goto('/');await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),xs);await page.reload()}
+async function seed(page,xs){await page.goto('/');for(const id of ['decisionPanel']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await page.evaluate(xs=>localStorage.setItem('motorradar-v1',JSON.stringify(xs)),xs);await page.reload();for(const id of ['decisionPanel']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()}}
 test('explicit price confirmation, same-price date, budget, changed-price invalidation and persistence',async({page})=>{
  const xs=[rec('a'),rec('b',{model:'KTM Duke 250',price:260000,verifiedPrice:260000,priceVerifiedAt:'2026-01-01'})];await seed(page,xs);
  await expect(page.locator('#smartSelector')).toContainText('Fiyat bilinmiyor / doğrulanmadı (1)');
- await page.locator('[data-price="a"]').click();await expect(page.locator('#quickVerifyPrice')).not.toBeChecked();await page.locator('#quickVerifyPrice').check();await page.locator('#quickPriceForm button[type=submit]').click();
+ await page.locator('[data-price="a"]').evaluate(e=>{const d=e.closest('details');if(d)d.open=true});await page.locator('[data-price="a"]').click();await expect(page.locator('#quickVerifyPrice')).not.toBeChecked();await page.locator('#quickVerifyPrice').check();await page.locator('#quickPriceForm button[type=submit]').click();
  await expect(page.locator('#smartSelector')).toContainText('Bütçeye uygun (1)');await expect(page.locator('#smartSelector')).toContainText('/100');
  let saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));expect(saved[0].history).toEqual(xs[0].history);expect(saved[0].notes).toBe('koru');expect(saved[0].priceVerifiedAt).toBeTruthy();
  await page.locator('#selectorBudget').fill('270000');await page.locator('#selectorBudget').press('Tab');await expect(page.locator('#smartSelector')).toContainText('Bütçeye uygun (2)');
- await page.reload();await expect(page.locator('#selectorBudget')).toHaveValue('270000');
- await page.locator('[data-price="a"]').click();await page.locator('#quickPrice').fill('230000');await page.locator('#quickPriceForm button[type=submit]').click();await expect(page.locator('#smartSelector')).toContainText('Fiyat bilinmiyor / doğrulanmadı (1)');
+ await page.reload();for(const id of ['decisionPanel']){if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click()};await expect(page.locator('#selectorBudget')).toHaveValue('270000');
+ await page.locator('[data-price="a"]').evaluate(e=>{const d=e.closest('details');if(d)d.open=true});await page.locator('[data-price="a"]').click();await page.locator('#quickPrice').fill('230000');await page.locator('#quickPriceForm button[type=submit]').click();await expect(page.locator('#smartSelector')).toContainText('Fiyat bilinmiyor / doğrulanmadı (1)');
  saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('motorradar-v1')));expect(saved[0].priceVerifiedAt).toBeNull();expect(saved[0].history).toHaveLength(2);
 });
 test('top five, closed exclusion, missing fields, dated duplicate drops, signed comparison and mobile width',async({page})=>{

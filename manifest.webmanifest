@@ -1,13 +1,13 @@
 {
-  "name": "MotorRadar 3.9 Beta",
+  "name": "MotorRadar 4.0 Beta",
   "short_name": "MotorRadar",
   "description": "İlan bağlantılarını ve fiyat geçmişini kendi telefonunda takip et.",
   "lang": "tr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#080c15",
-  "theme_color": "#0a0e18",
+  "background_color": "#171b22",
+  "theme_color": "#171b22",
   "icons": [
     {
       "src": "icon-192.png",

@@ -1,4 +1,6 @@
-# MotorRadar 3.9 Beta
+# MotorRadar 4.0 Beta
+
+Sade ilan kartları, altı bölümlü ilan ekranı ve durum satırları. [4.0 arayüz ve veri koruma notları](docs/4-0-urun-arayuzu.md).
 
 Satın Alma Asistanı: ilan başına yedi kalıcı görev, dört durum, kritik eksikler ve yan yana hazırlık karşılaştırması. [Kullanım ve veri güvenliği](docs/3-9-satin-alma-asistani.md).
 

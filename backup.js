@@ -25,7 +25,7 @@
   }
   return out;
  }
- function snapshot(listings,storage){return {app:'MotorRadar',version:'3.9.0-beta',exportedAt:new Date().toISOString(),photosIncluded:false,listings,costScenarios:scenarios(JSON.parse(storage.getItem(COSTS)||'{}')),purchasePreparation:A.read(storage)};}
+ function snapshot(listings,storage){return {app:'MotorRadar',version:'4.0.0-beta',exportedAt:new Date().toISOString(),photosIncluded:false,listings,costScenarios:scenarios(JSON.parse(storage.getItem(COSTS)||'{}')),purchasePreparation:A.read(storage)};}
  function preview(d,existing,costs,valid,duplicate,preparation={}){
   if(d?.app!=='MotorRadar'||!Array.isArray(d.listings)||d.listings.length>10000||!d.listings.every(valid))throw Error('Geçersiz yedek');
   const ids=new Set();for(const x of d.listings){if(!x.id||unsafe(x.id)||ids.has(x.id))throw Error('Tekrarlanan ilan');ids.add(x.id);}
@@ -40,7 +40,7 @@
   const before={listings:storage.getItem(STORE),costs:storage.getItem(COSTS),preparation:storage.getItem(TASKS)};
   if(before.listings!==expected.listings||before.costs!==expected.costs||(Object.hasOwn(expected,'preparation')&&before.preparation!==expected.preparation))throw Error('Veriler başka sekmede değişti; önizlemeyi yeniden açın.');
   // A write failure here prevents any mutation. This copy also survives an interrupted tab.
-  storage.setItem(RECOVERY,JSON.stringify({app:'MotorRadar',version:'3.9.0-beta',photosIncluded:false,exportedAt:new Date().toISOString(),listings:JSON.parse(before.listings||'[]'),costScenarios:JSON.parse(before.costs||'{}'),purchasePreparation:A.validate(JSON.parse(before.preparation||'{}'))}));
+  storage.setItem(RECOVERY,JSON.stringify({app:'MotorRadar',version:'4.0.0-beta',photosIncluded:false,exportedAt:new Date().toISOString(),listings:JSON.parse(before.listings||'[]'),costScenarios:JSON.parse(before.costs||'{}'),purchasePreparation:A.validate(JSON.parse(before.preparation||'{}'))}));
   storage.setItem(PENDING,JSON.stringify(before));
   try{if(plan.preparation)storage.setItem(TASKS,JSON.stringify(A.validate(plan.preparation)));storage.setItem(COSTS,JSON.stringify(plan.costs));storage.setItem(STORE,JSON.stringify(plan.listings));storage.removeItem(PENDING);}
   catch(error){try{recover(storage)}catch{}throw Error('Kaydedilemedi. İçe aktarma öncesi ayrı yedeği kullanın.');}
